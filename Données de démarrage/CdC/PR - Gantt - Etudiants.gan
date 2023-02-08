@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?><project name="EçAMBOT" company="ECAM" webLink="http://" view-date="2023-02-01" view-index="0" gantt-divider-location="413" resource-divider-location="300" version="2.8.11" locale="fr">
+    <description/>
+    <view zooming-state="default:8" id="gantt-chart">
+        <field id="tpd3" name="Nom" width="220" order="0"/>
+        <field id="tpd4" name="Date de début" width="95" order="1"/>
+        <field id="tpd5" name="Date de fin" width="94" order="2"/>
+        <option id="color.recent">
+            <![CDATA[#ff0000 #cc0033 #ff0033 #ff3333 #ff3300]]>
+        </option>
+    </view>
+    <view id="resource-table">
+        <field id="0" name="Nom" width="210" order="0"/>
+        <field id="1" name="Rôle par défaut" width="86" order="1"/>
+    </view>
+    <!-- -->
+    <calendars>
+        <day-types>
+            <day-type id="0"/>
+            <day-type id="1"/>
+            <default-week id="1" name="default" sun="1" mon="0" tue="0" wed="0" thu="0" fri="0" sat="1"/>
+            <only-show-weekends value="false"/>
+            <overriden-day-types/>
+            <days/>
+        </day-types>
+    </calendars>
+    <tasks empty-milestones="true">
+        <taskproperties>
+            <taskproperty id="tpd0" name="type" type="default" valuetype="icon"/>
+            <taskproperty id="tpd1" name="priority" type="default" valuetype="icon"/>
+            <taskproperty id="tpd2" name="info" type="default" valuetype="icon"/>
+            <taskproperty id="tpd3" name="name" type="default" valuetype="text"/>
+            <taskproperty id="tpd4" name="begindate" type="default" valuetype="date"/>
+            <taskproperty id="tpd5" name="enddate" type="default" valuetype="date"/>
+            <taskproperty id="tpd6" name="duration" type="default" valuetype="int"/>
+            <taskproperty id="tpd7" name="completion" type="default" valuetype="int"/>
+            <taskproperty id="tpd8" name="coordinator" type="default" valuetype="text"/>
+            <taskproperty id="tpd9" name="predecessorsr" type="default" valuetype="text"/>
+        </taskproperties>
+        <task id="8" name="DEMARRAGE PROJET" color="#ff3300" meeting="true" start="2023-02-08" duration="0" complete="0" thirdDate="2023-02-01" thirdDate-constraint="0" expand="true"/>
+        <task id="34" name="Rencontre resp équipe TDA" color="#ff0033" meeting="true" start="2023-02-16" duration="0" complete="0" thirdDate="2023-02-01" thirdDate-constraint="0" expand="true">
+            <notes>
+                <![CDATA[Rencontre avec resposable équipe TD A 9h45 11h15 salle B040]]>
+            </notes>
+        </task>
+        <task id="38" name="Rencontre resp équipe TDB" color="#ff0033" meeting="true" start="2023-02-17" duration="0" complete="0" thirdDate="2023-02-01" thirdDate-constraint="0" expand="true">
+            <notes>
+                <![CDATA[Rencontre avec resposable équipe TD A 10h20 11h25 salle B040]]>
+            </notes>
+        </task>
+        <task id="41" name="Rencontre resp équipe TDC" color="#ff0033" meeting="true" start="2023-02-16" duration="0" complete="0" thirdDate="2023-02-01" thirdDate-constraint="0" expand="true">
+            <notes>
+                <![CDATA[Rencontre avec resposable équipe TD A 9h45   11h15 salle B040]]>
+            </notes>
+        </task>
+        <task id="42" name="Repère 1 - drive" color="#ff0000" meeting="true" start="2023-02-17" duration="0" complete="0" thirdDate="2023-02-01" thirdDate-constraint="0" expand="true">
+            <notes>
+                <![CDATA[18 h : votre drive est à jour et le lien valide est envoyé aux encadrants et votre accompagnateur]]>
+            </notes>
+        </task>
+        <task id="43" name="Repère 2 - base minimale" color="#cc0033" meeting="true" start="2023-03-17" duration="0" complete="0" thirdDate="2023-02-01" thirdDate-constraint="0" expand="true">
+            <notes>
+                <![CDATA[18 h
+o Votre drive contient les éléments de gestion de projet attendus, remplis (gantt, matrice des risques, a minima)
+o Une première base roulante (même minimale et non définitive) est constituée. Elle inclut le pilotage des moteurs et une protection électrique : mise en série des batteries avec le fusible et un interrupteur capable de couper toute énergie dans les circuits. 
+
+La validation du repère sera fait en direct sur table ou en vidéo (option définie plus tard).
+]]>
+            </notes>
+        </task>
+        <task id="44" name="Repère 3 - roulage contrôlé" color="#ff0000" meeting="true" start="2023-04-07" duration="0" complete="0" thirdDate="2023-02-01" thirdDate-constraint="0" expand="true">
+            <notes>
+                <![CDATA[18 h
+Une plateforme roulante inclut un asservissement moteur minimal suivant la ligne.
+La validation du repère sera faite en direct sur table ou en vidéo (option définie plus tard).
+]]>
+            </notes>
+        </task>
+        <task id="11" name="RENCONTRES" meeting="false" start="2023-02-27" duration="60" complete="0" expand="true">
+            <task id="12" name="R0" color="#8cb6ce" shape="1,0,0,0,1,0,0,0,1,0,0,0,1,1,1,1" meeting="false" start="2023-02-27" duration="5" complete="0" thirdDate="2023-02-01" thirdDate-constraint="0" expand="true">
+                <notes>
+                    <![CDATA[Période de première rencontre avec votre accompagnateur.
+Vous validez la date avec votre accompagnateur.
+
+Vous préparez une présentation type ppt avec
+  - présentation de votre organisation
+  - rappel du jeu et contraintes
+  - matrice des risques (qu'est-ce qui fait que votre projet va rater, que mettez-vous en face ?)
+  - éléments de planning
+  - éléments stratégiquse et de solutions
+]]>
+                </notes>
+            </task>
+            <task id="14" name="R1" color="#8cb6ce" shape="1,0,0,0,1,0,0,0,1,0,0,0,1,1,1,1" meeting="false" start="2023-03-27" duration="5" complete="0" thirdDate="2023-02-01" thirdDate-constraint="0" expand="true">
+                <notes>
+                    <![CDATA[Période de seconde rencontre avec votre accompagnateur.
+Vous validez la date avec votre accompagnateur.
+
+Vous préparez une présentation type ppt avec
+  - avancement depuis la dernière fois
+  - retour sur les risques (des nouveaux ?)
+  - relecture du planning
+  - prévisionnel
+  - difficultés
+
+Vous prévoyez une démonstration matérielle
+  - sur table ou non
+  Suivi de ligne, action, ...]]>
+                </notes>
+            </task>
+            <task id="17" name="R3" color="#8cb6ce" shape="1,0,0,0,1,0,0,0,1,0,0,0,1,1,1,1" meeting="false" start="2023-05-15" duration="5" complete="0" thirdDate="2023-02-01" thirdDate-constraint="0" expand="true">
+                <notes>
+                    <![CDATA[Période de troisième rencontre avec votre accompagnateur.
+Vous validez la date avec votre accompagnateur.
+
+Vous préparez une présentation type ppt avec
+  - avancement depuis la dernière fois
+  - retour sur les risques (des nouveaux ?)
+  - relecture du planning
+  - prévisionnel
+  - difficultés
+
+Vous prévoyez une démonstration matérielle
+  - sur table ]]>
+                </notes>
+            </task>
+        </task>
+        <task id="0" name="VACANCES" color="#000000" meeting="false" start="2023-02-20" duration="56" complete="0" thirdDate="2023-02-20" thirdDate-constraint="0" expand="true">
+            <task id="1" name="Février" color="#8cb6ce" shape="1,0,1,0,0,1,0,1,1,0,1,0,0,1,0,1" meeting="false" start="2023-02-20" duration="5" complete="0" thirdDate="2023-01-27" thirdDate-constraint="0" expand="true"/>
+            <task id="2" name="Avril" color="#8cb6ce" shape="1,0,1,0,0,1,0,1,1,0,1,0,0,1,0,1" meeting="false" start="2023-04-17" duration="16" complete="0" thirdDate="2023-01-27" thirdDate-constraint="0" expand="true"/>
+        </task>
+        <task id="33" name="SPECIFICATIONS FINALES" color="#ff3333" meeting="true" start="2023-05-09" duration="0" complete="0" thirdDate="2023-02-01" thirdDate-constraint="0" expand="true">
+            <notes>
+                <![CDATA[Vous déposez sur votre drive une description précise de votre robot avec chacune de ses fonctionnalités / solutions implémentées ou prévues d'être implémentées.
+
+Pour une nouvelle fonctionnalité prévue non encore implémentée, une seule solution devra être décrite. Ce sera la seule possible ensuite.]]>
+            </notes>
+        </task>
+        <task id="20" name="COMPETITION" color="#ff0033" meeting="true" start="2023-06-08" duration="0" complete="0" thirdDate="2023-02-01" thirdDate-constraint="0" expand="true"/>
+    </tasks>
+    <resources/>
+    <allocations/>
+    <vacations/>
+    <previous/>
+    <roles roleset-name="Default"/>
+    <roles roleset-name="SoftwareDevelopment"/>
+</project>
