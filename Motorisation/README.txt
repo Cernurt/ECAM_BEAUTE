@@ -7,3 +7,4 @@ C'est comme si ENCODEURB était inutile, je peux le débrancher, c'est la même 
 
 
 MOTEUR avec capteur lisse : 600 ticks par tours
+MOTEUR avec capteur non lisse : 1400 ticks par tours
