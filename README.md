@@ -6,8 +6,10 @@ Résumé du cahier des charges :
 
   Extinction automatique au bout de 90 secondes 
 
+  Utilisation d'une souris pour distances :
 
-
+https://forum.arduino.cc/t/mouse-sensor-arduino-for-distance-traveled-x-and-y/544515/3
+https://synbio.org.uk/instrumentation-news/1234-interfacing-an-optical-mouse-sensor-to-your-arduino.html
 
 
 
