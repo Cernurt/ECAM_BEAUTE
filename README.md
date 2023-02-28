@@ -11,7 +11,7 @@ Résumé du cahier des charges :
 https://forum.arduino.cc/t/mouse-sensor-arduino-for-distance-traveled-x-and-y/544515/3
 https://synbio.org.uk/instrumentation-news/1234-interfacing-an-optical-mouse-sensor-to-your-arduino.html
 
-
+BOf https://www.instructables.com/Connect-a-USB-Mouse-to-Your-Arduino/
 
 
 Fin du résumé du cahier des charges.
