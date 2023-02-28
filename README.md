@@ -10,6 +10,7 @@ Résumé du cahier des charges :
 
 https://forum.arduino.cc/t/mouse-sensor-arduino-for-distance-traveled-x-and-y/544515/3
 https://synbio.org.uk/instrumentation-news/1234-interfacing-an-optical-mouse-sensor-to-your-arduino.html
+Bien : https://web.archive.org/web/20120329064620/http://www.arduino.cc:80/cgi-bin/yabb2/YaBB.pl?num=1154816099
 
 BOf https://www.instructables.com/Connect-a-USB-Mouse-to-Your-Arduino/
 
