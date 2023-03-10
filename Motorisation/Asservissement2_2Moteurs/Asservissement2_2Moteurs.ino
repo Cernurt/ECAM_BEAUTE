@@ -60,7 +60,7 @@ void setup() {
   motor_R.run(FORWARD);
   motor_L.run(FORWARD);
   
-  cibleVitesse = 1.50; //___________________________________________Variable de Vitesse !!!!!!_______________________________________________
+  cibleVitesse = 0; //___________________________________________Variable de Vitesse !!!!!!_______________________________________________
   ToutDroitCapitaine();
 }
 
@@ -69,7 +69,36 @@ void setup() {
 
 
 void loop() {
+  Serial.println("_________________________________");
 
+  motor_R.run(FORWARD);
+  motor_L.run(FORWARD);
+  
+  cibleVitesse = 1.00;
+  ToutDroitCapitaine();
+  
+  delay(3000);
+  
+  motor_R.run(RELEASE);
+  motor_L.run(RELEASE);
+  cibleVitesse = 0;
+  ToutDroitCapitaine();
+
+  delay(2500);
+
+  motor_R.run(BACKWARD);
+  motor_L.run(BACKWARD);
+  cibleVitesse = 1.00;
+  ToutDroitCapitaine();
+
+  delay(3000);
+
+  motor_R.run(RELEASE);
+  motor_L.run(RELEASE);
+  cibleVitesse = 0;
+  ToutDroitCapitaine();
+
+  delay(2500);
 
 
 
