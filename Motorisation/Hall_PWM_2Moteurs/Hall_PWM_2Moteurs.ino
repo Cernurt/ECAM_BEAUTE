@@ -34,7 +34,7 @@ double leftMotorPWM = 0;
 //char *var_LeftMotor[] = {"FORWARD", "255"};
 boolean AsservTrankil;
 
-double tickperround = 1400; // Valeur à changer en fonction du capteur à effet hall
+double tickperround = 600; // Valeur à changer en fonction du capteur à effet hall
  
 void setup() {
   pinMode(ENCODEURA, INPUT_PULLUP);
@@ -87,6 +87,7 @@ void MotorAsserv(){
    speedDeltaR = cibleVitesseR - speedR;
   if (speedDeltaR != 0){
     if ((speedDeltaR > 0 ) && (rightMotorPWM <  255)){
+      Serial.println(rightMotorPWM);
       rightMotorPWM += map(speedDeltaR, 0, cibleVitesseR, 1, 4);
       motor_R.setSpeed(int(round(rightMotorPWM)));
     }
@@ -94,7 +95,7 @@ void MotorAsserv(){
     
     if ((speedDeltaR < 0) && (rightMotorPWM > 0)){
       Serial.println("Motor Right ralenti.......");
-      rightMotorPWM -= map(speedDeltaR, 0, cibleVitesseR, 1, 10);
+      rightMotorPWM -= map(speedDeltaR, 0, -speedR, 1, 20);
       motor_R.setSpeed(int(round(rightMotorPWM)));
     }
   }
@@ -112,7 +113,7 @@ void MotorAsserv(){
     
     if ((speedDeltaL < 0) && (leftMotorPWM > 0)){
       Serial.println("Motor Left ralenti.......");
-      leftMotorPWM -= map(speedDeltaL, 0, cibleVitesseL, 1, 10);
+      leftMotorPWM -= map(speedDeltaL, 0, -speedL, 1, 20);
       motor_L.setSpeed(int(round(leftMotorPWM)));
     }
   }
@@ -136,12 +137,12 @@ void timerSpeed(){
   
   speedR = (hallTicksR/tickperround)/0.05; // Le 0.1 doit correspondre a la fréquence de relevé de speed ligne 20
   speedL = (hallTicksL/tickperround)/0.05; // Le 0.1 doit correspondre a la fréquence de relevé de speed ligne 20
-  Serial.println(hallTicksR/0.05);
-  
-  Serial.print("SpeedR = ");
-  Serial.print(speedR);
-  Serial.print(" | SpeedL =");
+
+  Serial.print("SpeedL = ");
   Serial.println(speedL);
+  Serial.print(" | SpeedR = ");
+  Serial.print(speedR);
+  
   hallTicksR = 0;
   hallTicksL = 0;
 }
