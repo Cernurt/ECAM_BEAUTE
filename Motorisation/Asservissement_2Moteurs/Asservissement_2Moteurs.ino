@@ -16,6 +16,15 @@ C'est important que ce soit la PIN 19 et 18 et pas une autre car c'est une PIN d
 
 AF_DCMotor motor_R(3, MOTOR34_8KHZ); // Initalisation du moteur branchements sur M2
 AF_DCMotor motor_L(2, MOTOR12_8KHZ); // Initalisation du moteur branchements sur M1
+
+//Variables d'asservissement
+unsigned int kpR = 50; //Coefficient 1 sur moteur droit
+unsigned int kpL = 50; //Coefficient 1 sur moteur gauche
+
+
+
+
+
 volatile int hallTicksR;
 volatile int hallTicksL;
 double tempTicksR;
@@ -33,6 +42,8 @@ double cibleVitesse;
 
 double speedDeltaR;
 double speedDeltaL;
+
+
 
 
 double rightMotorPWM = 0;
@@ -97,38 +108,18 @@ void MotorAsserv(){ // Fonction qui asservit les moteurs aux variables cibleVite
 
   // Motor Right
   
-   speedDeltaR = cibleVitesseR - speedR;
-  if (speedDeltaR != 0){
-    if ((speedDeltaR > 0 ) && (rightMotorPWM <  255)){
-      rightMotorPWM += map(speedDeltaR, 0, cibleVitesseR, 1, 4);
-      motor_R.setSpeed(int(round(rightMotorPWM)));
-    }
-
+  speedDeltaR = cibleVitesseR - speedR;
+  rightMotorPWM = kpR * speedDeltaR;
+  motor_R.setSpeed(rightMotorPWM);
     
-    if ((speedDeltaR < 0) && (rightMotorPWM > 0)){
-      Serial.println("Motor Right ralenti.......");
-      rightMotorPWM -= map(speedDeltaR, 0, -speedR, 1, 20);
-      motor_R.setSpeed(int(round(rightMotorPWM)));
-    }
-  }
+  
 
   // Motor Left
 
-   speedDeltaL = cibleVitesseL - speedL;
+  speedDeltaL = cibleVitesseL - speedL;
+  leftMotorPWM = kpL * speedDeltaL;
+  motor_L.setSpeed(leftMotorPWM);
 
-  if (speedDeltaL != 0){
-    if ((speedDeltaL > 0 ) && (leftMotorPWM <  255)){
-      leftMotorPWM += map(speedDeltaL, 0, cibleVitesseL, 1, 4);
-      motor_L.setSpeed(int(round(leftMotorPWM)));
-    }
-
-    
-    if ((speedDeltaL < 0) && (leftMotorPWM > 0)){
-      Serial.println("Motor Left ralenti.......");
-      leftMotorPWM -= map(speedDeltaL, 0, -speedL, 1, 20);
-      motor_L.setSpeed(int(round(leftMotorPWM)));
-    }
-  }
   
   
 }
