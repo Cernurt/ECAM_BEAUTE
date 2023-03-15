@@ -60,7 +60,7 @@ void setup() {
   motor_R.run(FORWARD);
   motor_L.run(FORWARD);
   
-  cibleVitesse = 1.50; //___________________________________________Variable de Vitesse !!!!!!_______________________________________________
+  cibleVitesse = 1; //___________________________________________Variable de Vitesse !!!!!!_______________________________________________
   ToutDroitCapitaine();
 }
 

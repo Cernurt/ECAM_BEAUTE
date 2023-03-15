@@ -34,11 +34,9 @@ double cibleVitesse;
 double speedDeltaR;
 double speedDeltaL;
 
-double DTicks;
-unsigned long tempo;
 
-double rightMotorPWM = 0;
-double leftMotorPWM = 0;
+double rightMotorPWM = 50;
+double leftMotorPWM = 50;
 //char *var_RightMotor[] = {"FORWARD", "255"};
 //char *var_LeftMotor[] = {"FORWARD", "255"};
 boolean AsservTrankil;
@@ -58,6 +56,12 @@ void setup() {
 
 
   Serial.begin(115200);           // set up Serial library at 115200
+
+  motor_R.run(FORWARD);
+  motor_L.run(FORWARD);
+  
+  cibleVitesse = 1; //___________________________________________Variable de Vitesse !!!!!!_______________________________________________
+  ToutDroitCapitaine();
 }
 
 
@@ -65,44 +69,7 @@ void setup() {
 
 
 void loop() {
-  
-  Serial.println("_________________________________");
 
-  motor_R.run(FORWARD);
-  motor_L.run(FORWARD);
-  
-  cibleVitesse = 1.00;
-  
-  TempoDroitCapitaine(5000);
-  Serial.println(rightMotorPWM);
-  
-  motor_R.run(RELEASE);
-  motor_L.run(RELEASE);
-  rightMotorPWM = 0;
-  leftMotorPWM = 0;
-  cibleVitesse = 0;
-  ToutDroitCapitaine();
-  
-  Serial.println(rightMotorPWM);
-  TempoDroitCapitaine(1000);
-  Serial.println(rightMotorPWM);
-  
-  motor_R.run(BACKWARD);
-  motor_L.run(BACKWARD);
-  cibleVitesse = 1.00;
-  ToutDroitCapitaine();
-
-  TempoDroitCapitaine(10000);
-  Serial.println(rightMotorPWM);
-
-  motor_R.run(RELEASE);
-  motor_L.run(RELEASE);
-  rightMotorPWM = 0;
-  leftMotorPWM = 0;
-  cibleVitesse = 0;
-  ToutDroitCapitaine();
-
-  TempoDroitCapitaine(1000);
 
 
 
@@ -114,24 +81,16 @@ void loop() {
 
 
 
-void TempoDroitCapitaine(int duree){
-  tempo = millis();
-  tempTicksR = 0;
-  tempTicksL = 0;
-  while (millis() - tempo < duree){
-    ToutDroitCapitaine();
-  }
-}
+
 
 
 void ToutDroitCapitaine(){
-
-  DTicks = tempTicksL - tempTicksR; // Si Roue droite plus rapide, Dticks négatif. Si Roue gauche plus rapide, Dticks positif.
-
-  // A CONTINUER_________________________________________________
-  
   cibleVitesseR = cibleVitesse;
   cibleVitesseL = cibleVitesse;
+
+  tempTicksR = 0;
+  tempTicksL = 0;
+  
 }
 
 void MotorAsserv(){ // Fonction qui asservit les moteurs aux variables cibleVitesseL et cibleVitesseR
@@ -146,7 +105,7 @@ void MotorAsserv(){ // Fonction qui asservit les moteurs aux variables cibleVite
     }
 
     
-    if ((speedDeltaR < 0) && (rightMotorPWM > 0)){
+    if ((speedDeltaR < 0) && (rightMotorPWM > 50)){
       Serial.println("Motor Right ralenti.......");
       rightMotorPWM -= map(speedDeltaR, 0, -speedR, 1, 20);
       motor_R.setSpeed(int(round(rightMotorPWM)));
@@ -164,7 +123,7 @@ void MotorAsserv(){ // Fonction qui asservit les moteurs aux variables cibleVite
     }
 
     
-    if ((speedDeltaL < 0) && (leftMotorPWM > 0)){
+    if ((speedDeltaL < 0) && (leftMotorPWM > 50)){
       Serial.println("Motor Left ralenti.......");
       leftMotorPWM -= map(speedDeltaL, 0, -speedL, 1, 20);
       motor_L.setSpeed(int(round(leftMotorPWM)));
