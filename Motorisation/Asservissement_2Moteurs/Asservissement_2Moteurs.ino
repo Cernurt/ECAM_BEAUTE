@@ -14,13 +14,16 @@ C'est important que ce soit la PIN 19 et 18 et pas une autre car c'est une PIN d
 //#define ENCODEURB 38
 #define ENCODEURC 18
 
-AF_DCMotor motor_R(3, MOTOR34_8KHZ); // Initalisation du moteur branchements sur M2
-AF_DCMotor motor_L(2, MOTOR12_8KHZ); // Initalisation du moteur branchements sur M1
+AF_DCMotor motor_R(3, MOTOR34_64KHZ); // Initalisation du moteur branchements sur M2
+AF_DCMotor motor_L(2, MOTOR12_64KHZ); // Initalisation du moteur branchements sur M1
 
 //Variables d'asservissement
-unsigned int kpR = 50; //Coefficient 1 sur moteur droit
-unsigned int kpL = 50; //Coefficient 1 sur moteur gauche
+unsigned int kpR = 120; //Coefficient 1 sur moteur droit
+float kiR = 10;
 
+
+unsigned int kpL = 120; //Coefficient 1 sur moteur gauche
+float kiL = 10;
 
 
 
@@ -43,14 +46,15 @@ double cibleVitesse;
 double speedDeltaR;
 double speedDeltaL;
 
-
-
+double somme_erreur;
+double delta_erreur;
+double erreur_precedente;
 
 double rightMotorPWM = 0;
 double leftMotorPWM = 0;
-//char *var_RightMotor[] = {"FORWARD", "255"};
-//char *var_LeftMotor[] = {"FORWARD", "255"};
-boolean AsservTrankil;
+
+
+
 
 double tickperround = 600; // Valeur à changer en fonction du capteur à effet hall
  
@@ -62,7 +66,7 @@ void setup() {
   attachInterrupt(digitalPinToInterrupt(19), compteurR, CHANGE);
   attachInterrupt(digitalPinToInterrupt(18), compteurL, CHANGE);
 
-  Timer1.initialize(50000); // On défini le timeur : 50000 microseconds ( 0.05 sec - or 20Hz )
+  Timer1.initialize(20000); // On défini le timeur : 50000 microseconds ( 0.05 sec - or 20Hz )
   Timer1.attachInterrupt( timerSpeed ); 
 
 
@@ -71,7 +75,7 @@ void setup() {
   motor_R.run(FORWARD);
   motor_L.run(FORWARD);
   
-  cibleVitesse = 1.50; //___________________________________________Variable de Vitesse !!!!!!_______________________________________________
+  cibleVitesse = 0; //___________________________________________Variable de Vitesse !!!!!!_______________________________________________
   ToutDroitCapitaine();
 }
 
@@ -81,13 +85,74 @@ void setup() {
 
 void loop() {
 
+  cibleVitesse = 0;
+  ToutDroitCapitaine();
+
+  delay(1000);
+
+  motor_R.run(FORWARD);
+  motor_L.run(FORWARD);
+
+  cibleVitesse = 2.00;
+  ToutDroitCapitaine();
+
+  delay(5000);
+
+  cibleVitesse = 0;
+  ToutDroitCapitaine();
+
+  delay(1000);
+
+  motor_R.run(BACKWARD);
+  motor_L.run(BACKWARD);
+
+  cibleVitesse = 2.00;
+  ToutDroitCapitaine();
+
+  delay(5000);
+
+  cibleVitesse = 0;
+  ToutDroitCapitaine();
+
+  delay(1000);
+
+  motor_R.run(BACKWARD);
+  motor_L.run(FORWARD);
+
+  cibleVitesse = 2.00;
+  ToutDroitCapitaine();
+
+  delay(5000);
+
+  cibleVitesse = 0;
+  ToutDroitCapitaine();
+
+  delay(1000);
+
+  motor_R.run(FORWARD);
+  motor_L.run(BACKWARD);
+
+  cibleVitesse = 2.00;
+  ToutDroitCapitaine();
+
+  delay(5000);
+
+  
 
 
 
 }
 
 
+void vaVitesse(double spid){
 
+  cibleVitesse = spid;
+  ToutDroitCapitaine();
+  erreur_precedente = spid;
+  somme_erreur = 0;
+
+  
+}
 
 
 
@@ -109,7 +174,16 @@ void MotorAsserv(){ // Fonction qui asservit les moteurs aux variables cibleVite
   // Motor Right
   
   speedDeltaR = cibleVitesseR - speedR;
-  rightMotorPWM = kpR * speedDeltaR;
+
+  somme_erreur += speedDeltaR;
+  float delta_erreur = speedDeltaR - erreur_precedente;
+  erreur_precedente = speedDeltaR;
+  
+  rightMotorPWM = kpR * speedDeltaR + kiR * somme_erreur; // + kdR * delta_erreur;
+  
+  if (rightMotorPWM > 255) rightMotorPWM = 255;
+  else if (rightMotorPWM < 0) rightMotorPWM = 0;
+  
   motor_R.setSpeed(rightMotorPWM);
     
   
@@ -118,6 +192,10 @@ void MotorAsserv(){ // Fonction qui asservit les moteurs aux variables cibleVite
 
   speedDeltaL = cibleVitesseL - speedL;
   leftMotorPWM = kpL * speedDeltaL;
+
+  if (leftMotorPWM > 255) leftMotorPWM = 255;
+  else if (leftMotorPWM < 0) leftMotorPWM = 0;
+  
   motor_L.setSpeed(leftMotorPWM);
 
   
@@ -130,16 +208,12 @@ void MotorAsserv(){ // Fonction qui asservit les moteurs aux variables cibleVite
 
 void timerSpeed(){
   //Serial.println(hallTicksR);
-  if (!(AsservTrankil)){ // Pour ralentir l'asservissement à deux fois le délai de l'interrupt Timer
-    MotorAsserv();
-    AsservTrankil = true;
-  } else {
-    AsservTrankil = false;
-  }
+  
+  MotorAsserv();
     
   
-  speedR = (hallTicksR/tickperround)/0.05; // Le 0.1 doit correspondre a la fréquence de relevé de speed ligne 20
-  speedL = (hallTicksL/tickperround)/0.05; // Le 0.1 doit correspondre a la fréquence de relevé de speed ligne 20
+  speedR = (hallTicksR/tickperround)/0.02; // Le 0.1 doit correspondre a la fréquence de relevé de speed ligne 20
+  speedL = (hallTicksL/tickperround)/0.02; // Le 0.1 doit correspondre a la fréquence de relevé de speed ligne 20
 
   Serial.print("SpeedL = ");
   Serial.print(speedL);
