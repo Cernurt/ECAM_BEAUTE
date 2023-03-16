@@ -1,6 +1,8 @@
-/*
-Ce programme contient le nouvel asservissement, et un systeme de classe pour les moteurs.
-*/
+//*****************************************************************************************************************************************
+
+//            Coefficients fixes et à déterminer empiriquement mais Classe pour les moteurs et asservissement en vitesse ok
+
+//*****************************************************************************************************************************************
 
 #include <AFMotor.h>
 #include <TimerOne.h>
