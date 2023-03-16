@@ -81,6 +81,7 @@ double cibleVitesse;
 double tickperround = 600; // Valeur à changer en fonction du capteur à effet hall
 volatile int hallTicksR;
 volatile int hallTicksL;
+int Start = 10;     // Capteur méanique de Start déclaré connecté broche 10
 //Creation des objets moteurs
 AF_DCMotor motorR = AF_DCMotor(3, MOTOR34_64KHZ); // Initalisation du moteur branchements sur M1
 AF_DCMotor motorL = AF_DCMotor(1, MOTOR12_64KHZ); // Initalisation du moteur branchements sur M1
@@ -116,6 +117,13 @@ void compteurL(){hallTicksL++;}
 
 void setup() {
   Serial.begin(115200);           // set up Serial library at 115200
+
+  pinMode(Start, INPUT);
+  digitalWrite (Start, HIGH);
+
+  Serial.println("Attente d'appui sur Start");
+
+  while(digitalRead(Start)==HIGH);  
   
   pinMode(ENCODEURR, INPUT_PULLUP);
   pinMode(ENCODEURL, INPUT_PULLUP);
