@@ -2,6 +2,8 @@
 
 //            Coefficients fixes et à déterminer empiriquement mais Classe pour les moteurs et asservissement en vitesse ok
 
+//            J'essaie de faire l'asservissement pour que le robot roule droit
+
 //*****************************************************************************************************************************************
 
 #include <AFMotor.h>
@@ -56,7 +58,6 @@ class ClasseMoteur{
       speedM = (hallTicks/_tickperround)/0.02; // Le 0.1 doit correspondre a la fréquence de relevé de speed ligne 20
       ttlTicks += hallTicks;
     }
-
   
     void MotorAsserv(){ // Fonction qui asservit les moteurs aux variables cibleVitesseL et cibleVitesseR
       // Motor Right
@@ -74,6 +75,11 @@ class ClasseMoteur{
       motor.setSpeed(_MotorPWM);
     }
 
+    void datSpeed(float cible){
+      resetParamAsserv();
+      cibleVitesse = cible;
+    }
+
     void resetParamAsserv(){
       _somme_erreur=0;
       _delta_erreur=0;
@@ -86,11 +92,11 @@ class ClasseMoteur{
 
 //___________________________________________________Création objets/variables_________________________________________________________
 
-double cibleVitesse;
 double tickperround = 600; // Valeur à changer en fonction du capteur à effet hall
 volatile int hallTicksR;
 volatile int hallTicksL;
 int Start = 34;     // Capteur méanique de Start déclaré connecté broche 34
+
 //Creation des objets moteurs
 AF_DCMotor motorR = AF_DCMotor(3, MOTOR34_64KHZ); // Initalisation du moteur branchements sur M1
 AF_DCMotor motorL = AF_DCMotor(2, MOTOR12_64KHZ); // Initalisation du moteur branchements sur M1
@@ -99,9 +105,9 @@ ClasseMoteur MGAUCHE = ClasseMoteur(600, motorL, 150, 10, 0); // Coefficients d'
 
 //____________________________________________________Def Fonctions___________________________________________________
 
-void ToutDroitCapitaine(){
-  MDROIT.cibleVitesse = cibleVitesse;
-  MGAUCHE.cibleVitesse = cibleVitesse;
+void ToutDroitCapitaine(float ciblasse){
+  MDROIT.datSpeed(ciblasse);
+  MGAUCHE.datSpeed(ciblasse);
 }
 
 void timerSpeed(){
@@ -130,9 +136,15 @@ void setup() {
   pinMode(Start, INPUT);
   digitalWrite (Start, HIGH);
 
+
   Serial.println("Attente d'appui sur Start");
 
-  while(digitalRead(Start)==HIGH);  
+  if (digitalRead(Start)==HIGH){         //
+    while(digitalRead(Start)==HIGH);     //    Lancement si l'interrupteur de start change d'état
+  } else if (digitalRead(Start)==LOW){   //
+    while(digitalRead(Start)==LOW);      //
+  }
+
   
   pinMode(ENCODEURR, INPUT_PULLUP);
   pinMode(ENCODEURL, INPUT_PULLUP);
@@ -145,9 +157,8 @@ void setup() {
  
 
   MDROIT.motor.run(FORWARD);     // ^
-  MGAUCHE.motor.run(FORWARD);    // |
-  cibleVitesse = 0;              // | Exemple de commande des moteurs,
-  ToutDroitCapitaine();          // v
+  MGAUCHE.motor.run(FORWARD);    // | Exemple de commande des moteurs
+  ToutDroitCapitaine();         // v
 }
 
 
@@ -155,35 +166,21 @@ void loop() {
 
   MDROIT.motor.run(FORWARD);
   MGAUCHE.motor.run(FORWARD);
-
-  cibleVitesse = 1.00;
-  MDROIT.resetParamAsserv();
-  MGAUCHE.resetParamAsserv();
-  ToutDroitCapitaine();
+  ToutDroitCapitaine(1.00);
 
   delay(1000);
 
-  cibleVitesse = 0;
-  MDROIT.resetParamAsserv();
-  MGAUCHE.resetParamAsserv();
-  ToutDroitCapitaine();
+  ToutDroitCapitaine(0.00);
 
   delay(2000);
 
   MDROIT.motor.run(BACKWARD);
   MGAUCHE.motor.run(BACKWARD);
-
-  cibleVitesse = 1.00;
-  MDROIT.resetParamAsserv();
-  MGAUCHE.resetParamAsserv();
-  ToutDroitCapitaine();
+  ToutDroitCapitaine(0.50);
   
-  delay(1000);
+  delay(2000);
   
-  cibleVitesse = 0;
-  MDROIT.resetParamAsserv();
-  MGAUCHE.resetParamAsserv();
-  ToutDroitCapitaine();
+  ToutDroitCapitaine(0.00);
 
   delay(2000);
 

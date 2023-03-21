@@ -132,7 +132,12 @@ void setup() {
 
   Serial.println("Attente d'appui sur Start");
 
-  while(digitalRead(Start)==HIGH);  
+  if (digitalRead(Start)==HIGH){         //
+    while(digitalRead(Start)==HIGH);     //    Lancement si l'interrupteur de start change d'état
+  } else if (digitalRead(Start)==LOW){   //
+    while(digitalRead(Start)==LOW);      //
+   }
+   
   
   pinMode(ENCODEURR, INPUT_PULLUP);
   pinMode(ENCODEURL, INPUT_PULLUP);
@@ -154,14 +159,14 @@ void setup() {
 void loop() {
 
   MDROIT.motor.run(FORWARD);
-  MGAUCHE.motor.run(FORWARD);
+  MGAUCHE.motor.run(BACKWARD);
 
-  cibleVitesse = 1.00;
+  cibleVitesse = 2.00;
   MDROIT.resetParamAsserv();
   MGAUCHE.resetParamAsserv();
   ToutDroitCapitaine();
 
-  delay(1000);
+  delay(5000);
 
   cibleVitesse = 0;
   MDROIT.resetParamAsserv();
@@ -171,14 +176,14 @@ void loop() {
   delay(2000);
 
   MDROIT.motor.run(BACKWARD);
-  MGAUCHE.motor.run(BACKWARD);
+  MGAUCHE.motor.run(FORWARD);
 
-  cibleVitesse = 1.00;
+  cibleVitesse = 2.00;
   MDROIT.resetParamAsserv();
   MGAUCHE.resetParamAsserv();
   ToutDroitCapitaine();
   
-  delay(1000);
+  delay(5000);
   
   cibleVitesse = 0;
   MDROIT.resetParamAsserv();
