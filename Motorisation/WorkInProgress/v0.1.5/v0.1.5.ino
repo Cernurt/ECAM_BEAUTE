@@ -26,6 +26,7 @@ class ClasseMoteur{
     double _speedDelta;
     double _MotorPWM;
     double _tickperround;
+    float _rRoues;
     
   
   public:
@@ -36,9 +37,10 @@ class ClasseMoteur{
     double cibleVitesse;
     AF_DCMotor motor;
 
-    ClasseMoteur(unsigned int tickperround, AF_DCMotor motor,float kp, float ki, float kd){
+    ClasseMoteur(unsigned int tickperround,float rRoues, AF_DCMotor motor,float kp, float ki, float kd){
       
       this->motor = motor;
+      this->_rRoues = rRoues;
       this->_tickperround = tickperround;
       this->speedM = 0;
       this->ttlTicks = 0;
@@ -75,6 +77,10 @@ class ClasseMoteur{
       motor.setSpeed(_MotorPWM);
     }
 
+    double distanceParcourue(){
+      return ((ttlTicks/_tickperround)*2*3.1416*_rRoues);
+    }
+
     void datSpeed(float cible){
       resetParamAsserv();
       cibleVitesse = cible;
@@ -91,23 +97,54 @@ class ClasseMoteur{
 //____________________________________________________Fin de LaGrandeClasse___________________________________________
 
 //___________________________________________________Création objets/variables_________________________________________________________
+bool debug=true;
 
 double tickperround = 600; // Valeur à changer en fonction du capteur à effet hall
 volatile int hallTicksR;
 volatile int hallTicksL;
+double rRoues = 33; // en mm
+
 int Start = 34;     // Capteur méanique de Start déclaré connecté broche 34
+
+float coefbiMot;
+float deltaS;
+float ratio;
+float cibleR;
+float cibleL;
+
+double distempR;
+double distempL;
 
 //Creation des objets moteurs
 AF_DCMotor motorR = AF_DCMotor(3, MOTOR34_64KHZ); // Initalisation du moteur branchements sur M1
 AF_DCMotor motorL = AF_DCMotor(2, MOTOR12_64KHZ); // Initalisation du moteur branchements sur M1
-ClasseMoteur MDROIT = ClasseMoteur(600, motorR, 150, 10, 0);
-ClasseMoteur MGAUCHE = ClasseMoteur(600, motorL, 150, 10, 0); // Coefficients d'asservissement à parametrer ! kp,ki,kd
+ClasseMoteur MDROIT = ClasseMoteur(600,rRoues, motorR, 150, 10, 0);
+ClasseMoteur MGAUCHE = ClasseMoteur(600,rRoues, motorL, 150, 10, 0); // Coefficients d'asservissement à parametrer ! kp,ki,kd
 
 //____________________________________________________Def Fonctions___________________________________________________
 
-void ToutDroitCapitaine(float ciblasse){
+void ToutDroitCapitaine(float ciblasse, float ticksR, float ticksL){
+  
+  deltaS = ticksR - ticksL;
+  ratio = map(deltaS, -3000, 3000, -0.30, 0.30);
+  cibleR = ciblasse*(1-ratio);
+  cibleL = ciblasse*(1+ratio);
+
   MDROIT.datSpeed(ciblasse);
   MGAUCHE.datSpeed(ciblasse);
+}
+
+void avanceDeMm(float distDem, float vitesseDem){
+  
+  distempR = MDROIT.distanceParcourue();
+  distempL = MGAUCHE.distanceParcourue();
+
+  while(((MDROIT.distanceParcourue() + MGAUCHE.distanceParcourue())/2 - (distempR + distempL)/2) < distDem){
+    ToutDroitCapitaine(vitesseDem, MDROIT.distanceParcourue() - distempR, MGAUCHE.distanceParcourue() - distempL);
+  }
+
+  ToutDroitCapitaine(0,0,0);
+  
 }
 
 void timerSpeed(){
@@ -117,10 +154,12 @@ void timerSpeed(){
   MGAUCHE.routine(hallTicksL);
   hallTicksL = 0;
 
-  Serial.print("Vitesses: Gauche = ");
-  Serial.print(MGAUCHE.speedM);
-  Serial.print(" - Droite = ");
-  Serial.println(MDROIT.speedM);
+  if (debug){
+    Serial.print("Vitesses: Gauche = ");
+    Serial.print(MGAUCHE.speedM);
+    Serial.print(" - Droite = ");
+    Serial.println(MDROIT.speedM);
+  }
 }
 
 void compteurR(){hallTicksR++;}
@@ -158,54 +197,24 @@ void setup() {
 
   MDROIT.motor.run(FORWARD);     // ^
   MGAUCHE.motor.run(FORWARD);    // | Exemple de commande des moteurs
-  ToutDroitCapitaine(0);         // v
+  avanceDeMm(0, 1);              // v   (distanceEnMm, vitesse en tr/sec)
 }
 
 
 void loop() {
 
-  MDROIT.motor.run(FORWARD);
+  MDROIT.motor.run(FORWARD);   
   MGAUCHE.motor.run(FORWARD);
-  ToutDroitCapitaine(1.00);
-
-  delay(1000);
-
-  ToutDroitCapitaine(0.00);
+  avanceDeMm(300, 2);
 
   delay(2000);
 
-  MDROIT.motor.run(BACKWARD);
+  MDROIT.motor.run(BACKWARD);   
   MGAUCHE.motor.run(BACKWARD);
-  ToutDroitCapitaine(0.50);
+  avanceDeMm(300, 2);
+
+  delay(3000);
+
   
-  delay(2000);
-  
-  ToutDroitCapitaine(0.00);
-
-  delay(2000);
-
-  delay(2000);
-
-  MDROIT.motor.run(FORWARD);
-  MGAUCHE.motor.run(BACKWARD);
-  ToutDroitCapitaine(2.00);
-  
-  delay(2000);
-  
-  ToutDroitCapitaine(0.00);
-
-  delay(2000);
-
-  delay(2000);
-
-  MDROIT.motor.run(BACKWARD);
-  MGAUCHE.motor.run(FORWARD);
-  ToutDroitCapitaine(2.00);
-  
-  delay(2000);
-  
-  ToutDroitCapitaine(0.00);
-
-  delay(2000);
 
 }
