@@ -81,6 +81,14 @@ class ClasseMoteur{
       return ((ttlTicks/_tickperround)*2*3.1416*_rRoues);
     }
 
+    double MMtoTicks(float temp){
+      return ((temp/(2*3.1416*_rRoues))*_tickperround);
+    }
+
+    double TickstoMM(float temp){
+      return ((temp/_tickperround)*2*3.1416*_rRoues);
+    }
+
     void datSpeed(float cible){
       resetParamAsserv();
       cibleVitesse = cible;
@@ -126,21 +134,21 @@ ClasseMoteur MGAUCHE = ClasseMoteur(600,rRoues, motorL, 150, 10, 0); // Coeffici
 void ToutDroitCapitaine(float ciblasse, float ticksR, float ticksL){
   
   deltaS = ticksR - ticksL;
-  ratio = map(deltaS, -3000, 3000, -0.30, 0.30);
+  ratio = map(deltaS, -1000, 1000, -0.30, 0.30);
   cibleR = ciblasse*(1-ratio);
   cibleL = ciblasse*(1+ratio);
 
-  MDROIT.datSpeed(ciblasse);
-  MGAUCHE.datSpeed(ciblasse);
+  MDROIT.datSpeed(cibleR);
+  MGAUCHE.datSpeed(cibleL);
 }
 
 void avanceDeMm(float distDem, float vitesseDem){
   
-  distempR = MDROIT.distanceParcourue();
-  distempL = MGAUCHE.distanceParcourue();
+  distempR = MDROIT.ttlTicks;
+  distempL = MGAUCHE.ttlTicks;
 
-  while(((MDROIT.distanceParcourue() + MGAUCHE.distanceParcourue())/2 - (distempR + distempL)/2) < distDem){
-    ToutDroitCapitaine(vitesseDem, MDROIT.distanceParcourue() - distempR, MGAUCHE.distanceParcourue() - distempL);
+  while(((MDROIT.ttlTicks + MGAUCHE.ttlTicks)/2 - (distempR + distempL)/2) < MDROIT.MMtoTicks(distDem)){
+    ToutDroitCapitaine(vitesseDem, MDROIT.ttlTicks - distempR, MGAUCHE.ttlTicks - distempL);
   }
 
   ToutDroitCapitaine(0,0,0);
@@ -205,9 +213,13 @@ void loop() {
 
   MDROIT.motor.run(FORWARD);   
   MGAUCHE.motor.run(FORWARD);
-  avanceDeMm(300, 2);
+  avanceDeMm(3000, 2);
 
-  delay(2000);
+  Serial.println(MDROIT.ttlTicks);
+  Serial.println(MGAUCHE.ttlTicks);
+
+  Serial.println(MDROIT.distanceParcourue());
+  delay(6000);
 
   MDROIT.motor.run(BACKWARD);   
   MGAUCHE.motor.run(BACKWARD);
