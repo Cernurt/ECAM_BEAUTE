@@ -172,7 +172,7 @@ void loop() {
 
   ToutDroitCapitaine(0.00);
 
-  delay(2000);
+  delay(1000);
 
   MDROIT.motor.run(BACKWARD);
   MGAUCHE.motor.run(BACKWARD);
@@ -182,30 +182,27 @@ void loop() {
   
   ToutDroitCapitaine(0.00);
 
-  delay(2000);
-
-  delay(2000);
+  delay(1000);
 
   MDROIT.motor.run(FORWARD);
-  MGAUCHE.motor.run(BACKWARD);
-  ToutDroitCapitaine(2.00);
-  
-  delay(2000);
-  
-  ToutDroitCapitaine(0.00);
-
-  delay(2000);
-
-  delay(2000);
-
-  MDROIT.motor.run(BACKWARD);
   MGAUCHE.motor.run(FORWARD);
   ToutDroitCapitaine(2.00);
+
+  delay(1000);
+
+  ToutDroitCapitaine(0.00);
+
+  delay(1000);
+
+  MDROIT.motor.run(BACKWARD);
+  MGAUCHE.motor.run(BACKWARD);
+  ToutDroitCapitaine(1.50);
   
   delay(2000);
   
   ToutDroitCapitaine(0.00);
 
-  delay(2000);
+  delay(1000);
 
+ 
 }

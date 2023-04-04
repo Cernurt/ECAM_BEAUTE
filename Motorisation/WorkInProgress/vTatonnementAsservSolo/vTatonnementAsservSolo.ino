@@ -26,7 +26,6 @@ class ClasseMoteur{
     double _speedDelta;
     double _MotorPWM;
     double _tickperround;
-    float _rRoues;
     
   
   public:
@@ -37,10 +36,9 @@ class ClasseMoteur{
     double cibleVitesse;
     AF_DCMotor motor;
 
-    ClasseMoteur(unsigned int tickperround,float rRoues, AF_DCMotor motor,float kp, float ki, float kd){
+    ClasseMoteur(unsigned int tickperround, AF_DCMotor motor,float kp, float ki, float kd){
       
       this->motor = motor;
-      this->_rRoues = rRoues;
       this->_tickperround = tickperround;
       this->speedM = 0;
       this->ttlTicks = 0;
@@ -69,24 +67,12 @@ class ClasseMoteur{
       _delta_erreur = _speedDelta - _erreur_precedente;
       _erreur_precedente = _speedDelta;
       
-      _MotorPWM = _kp * _speedDelta + _ki * _somme_erreur; // + _kd * _delta_erreur;
+      _MotorPWM = _kp * _speedDelta + _ki * _somme_erreur + _kd * _delta_erreur;
       
       if (_MotorPWM > 255) _MotorPWM = 255;
       else if (_MotorPWM < 0) _MotorPWM = 0;
       
       motor.setSpeed(_MotorPWM);
-    }
-
-    double distanceParcourue(){
-      return ((ttlTicks/_tickperround)*2*3.1416*_rRoues);
-    }
-
-    double MMtoTicks(float temp){
-      return ((temp/(2*3.1416*_rRoues))*_tickperround);
-    }
-
-    double TickstoMM(float temp){
-      return ((temp/_tickperround)*2*3.1416*_rRoues);
     }
 
     void datSpeed(float cible){
@@ -105,54 +91,24 @@ class ClasseMoteur{
 //____________________________________________________Fin de LaGrandeClasse___________________________________________
 
 //___________________________________________________Création objets/variables_________________________________________________________
-bool debug=true;
 
 double tickperround = 600; // Valeur à changer en fonction du capteur à effet hall
 volatile int hallTicksR;
 volatile int hallTicksL;
-double rRoues = 33; // en mm
-
 int Start = 34;     // Capteur méanique de Start déclaré connecté broche 34
-
-float coefbiMot;
-float deltaS;
-float ratio;
-float cibleR;
-float cibleL;
-
-double distempR;
-double distempL;
+long court;
 
 //Creation des objets moteurs
 AF_DCMotor motorR = AF_DCMotor(3, MOTOR34_64KHZ); // Initalisation du moteur branchements sur M1
 AF_DCMotor motorL = AF_DCMotor(2, MOTOR12_64KHZ); // Initalisation du moteur branchements sur M1
-ClasseMoteur MDROIT = ClasseMoteur(600,rRoues, motorR, 150, 10, 0);
-ClasseMoteur MGAUCHE = ClasseMoteur(600,rRoues, motorL, 150, 10, 0); // Coefficients d'asservissement à parametrer ! kp,ki,kd
+ClasseMoteur MDROIT = ClasseMoteur(600, motorR, 200, 10, 0);
+ClasseMoteur MGAUCHE = ClasseMoteur(600, motorL, 160, 10, 0); // Coefficients d'asservissement à parametrer ! kp,ki,kd
 
 //____________________________________________________Def Fonctions___________________________________________________
 
-void ToutDroitCapitaine(float ciblasse, float ticksR, float ticksL){
-  
-  deltaS = ticksR - ticksL;
-  ratio = map(deltaS, -500, 500, -0.50, 0.50);
-  cibleR = ciblasse*(1-ratio);
-  cibleL = ciblasse*(1+ratio);
-
-  MDROIT.datSpeed(cibleR);
-  MGAUCHE.datSpeed(cibleL);
-}
-
-void avanceDeMm(float distDem, float vitesseDem){
-  
-  distempR = MDROIT.ttlTicks;
-  distempL = MGAUCHE.ttlTicks;
-
-  while(((MDROIT.ttlTicks + MGAUCHE.ttlTicks)/2 - (distempR + distempL)/2) < MDROIT.MMtoTicks(distDem)){
-    ToutDroitCapitaine(vitesseDem, MDROIT.ttlTicks - distempR, MGAUCHE.ttlTicks - distempL);
-  }
-
-  ToutDroitCapitaine(0,0,0);
-  
+void ToutDroitCapitaine(float ciblasse){
+  MDROIT.datSpeed(ciblasse);
+  MGAUCHE.datSpeed(ciblasse);
 }
 
 void timerSpeed(){
@@ -162,16 +118,15 @@ void timerSpeed(){
   MGAUCHE.routine(hallTicksL);
   hallTicksL = 0;
 
-  if (debug){
-    Serial.print("Vitesses: Gauche = ");
-    Serial.print(MGAUCHE.speedM);
-    Serial.print(" - Droite = ");
-    Serial.println(MDROIT.speedM);
-  }
+  Serial.print(MGAUCHE.speedM);
+  Serial.print(",");
+  Serial.println(MDROIT.speedM);
 }
 
 void compteurR(){hallTicksR++;}
 void compteurL(){hallTicksL++;}
+
+
 
 //____________________________________________________Debut programme_________________________________________________________
 
@@ -184,13 +139,14 @@ void setup() {
   digitalWrite (Start, HIGH);
 
 
-  Serial.println("Attente d'appui sur Start");
+  //Serial.println("Attente d'appui sur Start");
 
   if (digitalRead(Start)==HIGH){         //
     while(digitalRead(Start)==HIGH);     //    Lancement si l'interrupteur de start change d'état
   } else if (digitalRead(Start)==LOW){   //
     while(digitalRead(Start)==LOW);      //
   }
+  court = millis();
 
   
   pinMode(ENCODEURR, INPUT_PULLUP);
@@ -205,36 +161,24 @@ void setup() {
 
   MDROIT.motor.run(FORWARD);     // ^
   MGAUCHE.motor.run(FORWARD);    // | Exemple de commande des moteurs
-  avanceDeMm(0, 1);              // v   (distanceEnMm, vitesse en tr/sec)
+  ToutDroitCapitaine(0);         // v
 }
 
 
 void loop() {
 
-  MDROIT.motor.run(FORWARD);   
+  MDROIT.motor.run(FORWARD);
   MGAUCHE.motor.run(FORWARD);
-  avanceDeMm(300, 2);
+  ToutDroitCapitaine(2.00);
 
-  delay(1000);
+    delay(4000);
 
-  MDROIT.motor.run(BACKWARD);   
-  MGAUCHE.motor.run(FORWARD);
-  avanceDeMm(400, 2);
+  ToutDroitCapitaine(0.00);
 
-  delay(1000);
-
-  MDROIT.motor.run(FORWARD);   
-  MGAUCHE.motor.run(FORWARD);
-  avanceDeMm(300, 2);
-
-  delay(1000);
-  
-  MDROIT.motor.run(FORWARD);   
-  MGAUCHE.motor.run(BACKWARD);
-  avanceDeMm(400, 2);
-
-  delay(5000);
-
-  
+  if (digitalRead(Start)==HIGH){         //
+    while(digitalRead(Start)==HIGH);     //    Lancement si l'interrupteur de start change d'état
+  } else if (digitalRead(Start)==LOW){   //
+    while(digitalRead(Start)==LOW);      //
+  }
 
 }

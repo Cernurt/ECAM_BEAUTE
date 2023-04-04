@@ -90,7 +90,7 @@ class ClasseMoteur{
     }
 
     void datSpeed(float cible){
-      resetParamAsserv();
+      //resetParamAsserv();
       cibleVitesse = cible;
     }
 
@@ -110,11 +110,10 @@ bool debug=true;
 double tickperround = 600; // Valeur à changer en fonction du capteur à effet hall
 volatile int hallTicksR;
 volatile int hallTicksL;
-double rRoues = 33; // en mm
+double rRoues = 35; // en mm
 
 int Start = 34;     // Capteur méanique de Start déclaré connecté broche 34
 
-float coefbiMot;
 float deltaS;
 float ratio;
 float cibleR;
@@ -126,20 +125,30 @@ double distempL;
 //Creation des objets moteurs
 AF_DCMotor motorR = AF_DCMotor(3, MOTOR34_64KHZ); // Initalisation du moteur branchements sur M1
 AF_DCMotor motorL = AF_DCMotor(2, MOTOR12_64KHZ); // Initalisation du moteur branchements sur M1
-ClasseMoteur MDROIT = ClasseMoteur(600,rRoues, motorR, 150, 10, 0);
-ClasseMoteur MGAUCHE = ClasseMoteur(600,rRoues, motorL, 150, 10, 0); // Coefficients d'asservissement à parametrer ! kp,ki,kd
+
+AF_DCMotor brosse = AF_DCMotor(4, MOTOR34_64KHZ); // Initialisation sur M4 de la brosse
+
+ClasseMoteur MDROIT = ClasseMoteur(600,rRoues, motorR, 200, 30, 0);
+ClasseMoteur MGAUCHE = ClasseMoteur(600,rRoues, motorL, 200, 30, 0); // Coefficients d'asservissement à parametrer ! kp,ki,kd
 
 //____________________________________________________Def Fonctions___________________________________________________
 
 void ToutDroitCapitaine(float ciblasse, float ticksR, float ticksL){
   
   deltaS = ticksR - ticksL;
-  ratio = map(deltaS, -500, 500, -0.50, 0.50);
-  cibleR = ciblasse*(1-ratio);
-  cibleL = ciblasse*(1+ratio);
+  
+  cibleR = ciblasse*(1-deltaS*0.001); // Si DeltaS = 500, cibleR = ciblasse*0.5
+  cibleL = ciblasse*(1+deltaS*0.001);
 
   MDROIT.datSpeed(cibleR);
   MGAUCHE.datSpeed(cibleL);
+
+  if (false){
+    Serial.print("Vitesse cible gauche : ");
+    Serial.print(cibleL);
+    Serial.print("Vitesse cible droite : ");
+    Serial.println(cibleR);
+  } else { delay(1); } // Ne fonctionne pas sans ce délai, pas d'idée pourquoi.
 }
 
 void avanceDeMm(float distDem, float vitesseDem){
@@ -148,6 +157,7 @@ void avanceDeMm(float distDem, float vitesseDem){
   distempL = MGAUCHE.ttlTicks;
 
   while(((MDROIT.ttlTicks + MGAUCHE.ttlTicks)/2 - (distempR + distempL)/2) < MDROIT.MMtoTicks(distDem)){
+    //delay(100); // Peut etre que DatSpeed trop souvent peut empecher l'asservissement à la bonne vitesse. Ici 10Hz
     ToutDroitCapitaine(vitesseDem, MDROIT.ttlTicks - distempR, MGAUCHE.ttlTicks - distempL);
   }
 
@@ -213,25 +223,17 @@ void loop() {
 
   MDROIT.motor.run(FORWARD);   
   MGAUCHE.motor.run(FORWARD);
-  avanceDeMm(300, 2);
+  brosse.run(BACKWARD);
+  brosse.setSpeed(0);
+  avanceDeMm(1000, 2);
 
   delay(1000);
 
+  brosse.setSpeed(0);
   MDROIT.motor.run(BACKWARD);   
-  MGAUCHE.motor.run(FORWARD);
-  avanceDeMm(400, 2);
-
-  delay(1000);
-
-  MDROIT.motor.run(FORWARD);   
-  MGAUCHE.motor.run(FORWARD);
-  avanceDeMm(300, 2);
-
-  delay(1000);
-  
-  MDROIT.motor.run(FORWARD);   
   MGAUCHE.motor.run(BACKWARD);
-  avanceDeMm(400, 2);
+  avanceDeMm(1000, 2);
+
 
   delay(5000);
 
