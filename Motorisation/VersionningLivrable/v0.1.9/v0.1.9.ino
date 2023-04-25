@@ -248,51 +248,20 @@ void loop() {
 
   MDROIT.motor.run(FORWARD);   
   MGAUCHE.motor.run(FORWARD); 
+  brosse.run(BACKWARD);
+  brosse.setSpeed(200);
   avanceDeMm(2000, 2.00);
   delay(500);
+  brosse.setSpeed(0);
   tourne(1.00, "d");
   delay(1000);
   MDROIT.motor.run(FORWARD);  
   MGAUCHE.motor.run(FORWARD); 
   avanceDeMm(500, 1.50);
-  delay(1000);
-  tourne(1.00, "d");
-  delay(1000);
-  MDROIT.motor.run(FORWARD);  
-  MGAUCHE.motor.run(FORWARD); 
-  avanceDeMm(1600, 2.00);
-  delay(1000);
-  tourne(1.00, "d");
-  delay(1000);
-  MDROIT.motor.run(FORWARD);  
-  MGAUCHE.motor.run(FORWARD); 
-  avanceDeMm(500, 2.00);
-  delay(1000);
-  tourne(1.00, "d");
-  delay(1000);
-  MDROIT.motor.run(FORWARD);  
-  MGAUCHE.motor.run(FORWARD); 
-  avanceDeMm(1600, 2.00);
-  delay(1000);
-  tourne(1.00, "d");
-  delay(1000);
-  MDROIT.motor.run(FORWARD);  
-  MGAUCHE.motor.run(FORWARD); 
-  avanceDeMm(500, 2.00);
-  delay(1000);
-  tourne(1.00, "g");
-  delay(1000);
-  MDROIT.motor.run(FORWARD);  
-  MGAUCHE.motor.run(FORWARD); 
-  avanceDeMm(500, 2.00);
-  delay(1000);
-  tourne(1.00, "g");
-  delay(1000);
-  MDROIT.motor.run(FORWARD);  
-  MGAUCHE.motor.run(FORWARD); 
-  avanceDeMm(500, 2.00);
+
+  brosse.run(BACKWARD);
+  brosse.setSpeed(200);
   
- 
   delay(20000);
 
 }

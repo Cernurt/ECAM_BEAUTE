@@ -140,7 +140,7 @@ void ToutDroitCapitaine(float ciblasse, float ticksR, float ticksL){
   cibleR = ciblasse*(1-deltaS*0.001); // Si DeltaS = 500, cibleR = ciblasse*0.5
   cibleL = ciblasse*(1+deltaS*0.001);
 
-  MDROIT.datSpeed(cibleR*1.20); //Coef défini à la shlag, à enlever à terme
+  MDROIT.datSpeed(cibleR); //Coef défini à la shlag, à enlever à terme
   MGAUCHE.datSpeed(cibleL);
 
   if (false){
@@ -250,49 +250,12 @@ void loop() {
   MGAUCHE.motor.run(FORWARD); 
   avanceDeMm(2000, 2.00);
   delay(500);
-  tourne(1.00, "d");
-  delay(1000);
-  MDROIT.motor.run(FORWARD);  
-  MGAUCHE.motor.run(FORWARD); 
-  avanceDeMm(500, 1.50);
-  delay(1000);
-  tourne(1.00, "d");
-  delay(1000);
-  MDROIT.motor.run(FORWARD);  
-  MGAUCHE.motor.run(FORWARD); 
-  avanceDeMm(1600, 2.00);
-  delay(1000);
-  tourne(1.00, "d");
-  delay(1000);
-  MDROIT.motor.run(FORWARD);  
-  MGAUCHE.motor.run(FORWARD); 
-  avanceDeMm(500, 2.00);
-  delay(1000);
-  tourne(1.00, "d");
-  delay(1000);
-  MDROIT.motor.run(FORWARD);  
-  MGAUCHE.motor.run(FORWARD); 
-  avanceDeMm(1600, 2.00);
-  delay(1000);
-  tourne(1.00, "d");
-  delay(1000);
-  MDROIT.motor.run(FORWARD);  
-  MGAUCHE.motor.run(FORWARD); 
-  avanceDeMm(500, 2.00);
-  delay(1000);
-  tourne(1.00, "g");
-  delay(1000);
-  MDROIT.motor.run(FORWARD);  
-  MGAUCHE.motor.run(FORWARD); 
-  avanceDeMm(500, 2.00);
-  delay(1000);
-  tourne(1.00, "g");
-  delay(1000);
-  MDROIT.motor.run(FORWARD);  
-  MGAUCHE.motor.run(FORWARD); 
-  avanceDeMm(500, 2.00);
   
- 
-  delay(20000);
+  while(true){
+    Serial.print(MGAUCHE.ttlTicks);
+    Serial.print("---");
+    Serial.println(MDROIT.ttlTicks);
+  }
+  
 
 }
