@@ -23,8 +23,8 @@ void setup()
 {
   // configure the sensors
   qtr.setTypeRC();
-  qtr.setSensorPins((const uint8_t[]){3, 4, 5, 6, 7, 8, 9, 10}, SensorCount);
-  qtr.setEmitterPin(2);
+  qtr.setSensorPins((const uint8_t[]){A15, A14, A13, A12, A11, A10, A9, A8}, SensorCount);
+  qtr.setEmitterPin(47);
 
   Serial.begin(9600);
 }

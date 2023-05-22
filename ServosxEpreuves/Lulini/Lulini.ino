@@ -3,6 +3,6 @@ void setup() {
 }
 
 void loop() {
-  int valeur = analogRead(A8);
+  int valeur = analogRead(A7);
   Serial.println(valeur);
 }

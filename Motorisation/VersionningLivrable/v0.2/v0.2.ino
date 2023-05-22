@@ -9,9 +9,12 @@
 #include <AFMotor.h>
 #include <TimerOne.h>
 #include <Servo.h>
+#include <QTRSensors.h>
 
 #define ENCODEURR 19
 #define ENCODEURL 18
+
+
 
 //____________________________________________________LaGrandeClasse___________________________________________
 
@@ -90,7 +93,7 @@ class ClasseMoteur{
       return ((temp/_tickperround)*2*3.1416*_rRoues);
     }
 
-    void datSpeed(float cible){
+    void datSpeed(float cible){ // EN tour de roue par secondes
       //resetParamAsserv();
       cibleVitesse = cible;
     }
@@ -125,10 +128,24 @@ float nerfG = 1;
 double distempR;
 double distempL;
 
+//Variables PID suivi de ligne
+float Varia;
+int sommeErreur = 0;
+int lastError;
+int position;
+int error;
+float KP = 0.000214;
+float KI = 0;
+float KD = 0.000400;
+unsigned int sensors[8];
+
 Servo servolver;   // Servo du 360
 int delayvolver = 375;
 
 Servo servopousse;
+
+QTRSensors qtr;
+uint16_t sensorValues[8];
 
 //Creation des objets moteurs
 AF_DCMotor motorR = AF_DCMotor(3, MOTOR34_64KHZ); // Initalisation du moteur branchements sur M1
@@ -143,14 +160,48 @@ ClasseMoteur MGAUCHE = ClasseMoteur(600,rRoues, motorL, 200, 30, 0); // Coeffici
 
 
 void SuiviDligne(float ciblasse){
+  
+  position = qtr.readLineBlack(sensorValues);
+  error = position - 3500;
+  sommeErreur += error;
+  
+    
+  Varia = KP * error + KI * sommeErreur + KD * (error - lastError);
+  lastError = error;
+ 
 
-
-
-  MDROIT.datSpeed(cibleR);
-  MGAUCHE.datSpeed(cibleL);
+  MDROIT.datSpeed(ciblasse - Varia);
+  MGAUCHE.datSpeed(ciblasse + Varia);
   delay(1); //A tester sans 
 }
 
+void calibmax(){
+  for (uint16_t i = 0; i < 100; i++)
+  {
+    if (i < 10){
+      tourneCont(0.50, "d");
+    } 
+    else if (i < 30){
+      tourneCont(0.50, "g");
+    }
+    else if (i < 50){
+      tourneCont(0.50, "d");
+    }
+    else if (i < 70){
+      tourneCont(0.50, "g");
+    }
+    else if (i < 90){
+      tourneCont(0.50, "d");
+    }
+    else if (i < 100){
+      tourneCont(0.50, "g");
+    }
+    
+    qtr.calibrate();
+  }
+  MDROIT.datSpeed(0);
+  MGAUCHE.datSpeed(0);
+}
 
 
 void ToutDroitCapitaine(float ciblasse, float ticksR, float ticksL){
@@ -171,6 +222,11 @@ void ToutDroitCapitaine(float ciblasse, float ticksR, float ticksL){
   } else { delay(1); } // Ne fonctionne pas sans ce délai, pas d'idée pourquoi.
 }
 
+void capteurLumiere(){
+  int lumi = analogRead(A7);
+  
+}
+
 void avanceDeMm(float distDem, float vitesseDem){
   
   distempR = MDROIT.ttlTicks;
@@ -184,6 +240,23 @@ void avanceDeMm(float distDem, float vitesseDem){
   ToutDroitCapitaine(0,0,0);
   
 }
+
+void tourneCont(float vitessedem, String sens){
+  if (sens == "d"){
+    MDROIT.motor.run(BACKWARD);   
+    MGAUCHE.motor.run(FORWARD);
+  } else if (sens == "g"){
+    MDROIT.motor.run(FORWARD);   
+    MGAUCHE.motor.run(BACKWARD);
+  } else {
+    MDROIT.motor.run(RELEASE);   
+    MGAUCHE.motor.run(RELEASE);
+  }
+  MDROIT.datSpeed(vitessedem);
+  MGAUCHE.datSpeed(vitessedem);
+  
+}
+
 
 void tourne(float vitessedem, String sens){
 
@@ -244,6 +317,10 @@ void compteurL(){hallTicksL++;}
 void setup() {
   Serial.begin(115200);           // set up Serial library at 115200
 
+  qtr.setTypeRC();
+  qtr.setSensorPins((const uint8_t[]){A15, A14, A13, A12, A11, A10, A9, A8}, 8);
+  qtr.setEmitterPin(47);
+
   pinMode(Start, INPUT);
   digitalWrite (Start, HIGH);
 
@@ -278,6 +355,23 @@ void setup() {
 
 void loop() {
 
+  calibmax();
+  brosse.run(BACKWARD);
+  brosse.setSpeed(200);
+  leptitgrain();
+  servopousse.write(70);
+  
+
+  delay(2500);
+
+  servopousse.write(170);
+
+  MDROIT.motor.run(FORWARD);    
+  MGAUCHE.motor.run(FORWARD);  
+
+  while(1){
+    SuiviDligne(1.20);
+  }
   
 
 }
