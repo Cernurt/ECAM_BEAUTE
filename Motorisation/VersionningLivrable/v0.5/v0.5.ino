@@ -3,8 +3,11 @@
 //            Coefficients fixes et à déterminer empiriquement mais Classe pour les moteurs et asservissement en vitesse ok
 
 //            Parcours OK
+//            Programme nettoyé
 
-//            A faire PWM sur les capteurs pour limiter consommation
+//            Trouver un moyen de se décaller de la borne
+
+//            
 
 //*****************************************************************************************************************************************
 
@@ -142,10 +145,19 @@ float KI = 0;
 float KD = 0.000400;
 unsigned int sensors[8];
 
+int PinLumi = 39;
+
+int sensibilite = 50;
+
+int PinEol = 43;
+
 unsigned int tempos;
+
+boolean borne = false;
 
 Servo servolver;   // Servo du 360
 Servo servopousse;
+Servo servoeol;
 
 QTRSensors qtr;
 uint16_t sensorValues[8];
@@ -160,98 +172,6 @@ ClasseMoteur MDROIT = ClasseMoteur(600,rRoues, motorR, 200, 30, 0);
 ClasseMoteur MGAUCHE = ClasseMoteur(600,rRoues, motorL, 200, 30, 0); // Coefficients d'asservissement à parametrer ! kp,ki,kd
 
 //____________________________________________________Def Fonctions___________________________________________________
-
-
-
-
-void ElVirage(float ciblasse, String sens){ //WORK IN PROGRESS
-  if (sens == "g"){
-    MDROIT.datSpeed(ciblasse * 1.50);
-    MGAUCHE.datSpeed(ciblasse * 0.50);
-
-    tempos = positionLigne;
-    while (tempos <= 6500){ // Le robot quitte la ligne
-      uint16_t positionLigne = qtr.readLineBlack(sensorValues);
-      tempos = positionLigne;
-      MDROIT.motor.run(FORWARD);   
-      MGAUCHE.motor.run(FORWARD);
-    }
-    while (tempos > 4000){
-      uint16_t positionLigne = qtr.readLineBlack(sensorValues);
-      tempos = positionLigne;
-      MDROIT.motor.run(FORWARD);   
-      MGAUCHE.motor.run(FORWARD);
-    }
-    
-  } else if (sens == "d") {
-    MDROIT.motor.run(FORWARD);    
-    MGAUCHE.motor.run(FORWARD);
-    MDROIT.datSpeed(ciblasse * 0.50);
-    MGAUCHE.datSpeed(ciblasse * 1.50);
-    
-    tempos = positionLigne;
-    while (tempos >= 1500){ // Le robot quitte la ligne
-      uint16_t positionLigne = qtr.readLineBlack(sensorValues);
-      tempos = positionLigne;
-      MDROIT.motor.run(FORWARD);   
-      MGAUCHE.motor.run(FORWARD);
-    }
-    while (tempos < 3000){
-      uint16_t positionLigne = qtr.readLineBlack(sensorValues);
-      tempos = positionLigne;
-      MDROIT.motor.run(FORWARD);   
-      MGAUCHE.motor.run(FORWARD);
-    }
-    
-  }
-}
-
-void DemiToru(float ciblasse, float theta){ //WORK IN PROGRESS
-  distempR = MDROIT.ttlTicks;
-  distempL = MGAUCHE.ttlTicks;
-  MGAUCHE.datSpeed(ciblasse * 1.65);
-  MDROIT.datSpeed(ciblasse * 0.45);
-  
-  while (((MGAUCHE.ttlTicks - distempL)-(MDROIT.ttlTicks - distempR)) / MDROIT.MMtoTicks(250) <= theta){ // Le robot fait theta radians en tournant
-    MDROIT.motor.run(FORWARD);   
-    MGAUCHE.motor.run(FORWARD);
-  }   
-
-  ToutDroitCapitaine(0,0,0);
-  
-}
-
-
-void DecaleDligne(float ciblasse){
-
-  positionLigne = qtr.readLineBlack(sensorValues);
-  error = positionLigne - 6500;
-  sommeErreur += error;
-  
-  
-  Varia = KP * error + KI * sommeErreur + KD * (error - lastError);
-  lastError = error;
- 
-
-  MDROIT.datSpeed(ciblasse - Varia);
-  MGAUCHE.datSpeed(ciblasse + Varia);
-
-}
-
-void avanceDeDecaleInterLigne(float vitesseDem){
-
-  MDROIT.motor.run(FORWARD);     
-  MGAUCHE.motor.run(FORWARD);
-  uint16_t positionLigne = qtr.readLineBlack(sensorValues);
-
-  while(sensorValues[0] + sensorValues[1] + sensorValues[2] + sensorValues[3] + sensorValues[4] + sensorValues[5] + sensorValues[6] + sensorValues[7] < 4750){ // Mettre la sensibilité en variable ?
-    DecaleDligne(vitesseDem);
-    uint16_t positionLigne = qtr.readLineBlack(sensorValues);
-    MDROIT.motor.run(FORWARD);
-    MGAUCHE.motor.run(FORWARD);
-  }
-  ToutDroitCapitaine(0,0,0);
-}
 
 void SuiviDligne(float ciblasse){
   
@@ -306,8 +226,9 @@ void ToutDroitCapitaine(float ciblasse, float ticksR, float ticksL){
   } else { delay(1); } // Ne fonctionne pas sans ce délai, pas d'idée pourquoi.
 }
 
-void capteurLumiere(){
+int capteurLumiere(){
   int lumi = analogRead(A7);
+  return lumi;
 }
 
 void avanceDeMmLigne(float distDem, float vitesseDem){
@@ -332,13 +253,18 @@ void avanceDeMmInterLigne(float vitesseDem){
 
   MDROIT.motor.run(FORWARD);     
   MGAUCHE.motor.run(FORWARD);
-  uint16_t positionLigne = qtr.readLineBlack(sensorValues);
+  positionLigne = qtr.readLineBlack(sensorValues);
 
-  while(sensorValues[0] + sensorValues[1] + sensorValues[2] + sensorValues[3] + sensorValues[4] + sensorValues[5] + sensorValues[6] + sensorValues[7] < 3750){ // Mettre la sensibilité en variable ?
+  while(sensorValues[0] + sensorValues[1] + sensorValues[2] + sensorValues[3] + sensorValues[4] + sensorValues[5] + sensorValues[6] + sensorValues[7] < 4750){ // Mettre la sensibilité en variable ?
     SuiviDligne(vitesseDem);
-    uint16_t positionLigne = qtr.readLineBlack(sensorValues);
+    positionLigne = qtr.readLineBlack(sensorValues);
     MDROIT.motor.run(FORWARD);     
     MGAUCHE.motor.run(FORWARD);
+    if (sensorValues[0] + sensorValues[1] + sensorValues[2] + sensorValues[3] + sensorValues[4] + sensorValues[5] + sensorValues[6] + sensorValues[7] == 8000){
+      for (int i=0; i<8; i++){
+        sensorValues[i] = 0;
+      }
+    }
   }
   ToutDroitCapitaine(0,0,0);
 }
@@ -346,14 +272,26 @@ void avanceDeMmInterLigne(float vitesseDem){
 
 void heartbeat(){
   int pos;
-  for (pos = 0; pos <= 180; pos += 1) { // goes from 0 degrees to 180 degrees
+  for (pos = 90; pos <= 180; pos += 1) { // goes from 0 degrees to 180 degrees
     // in steps of 1 degree
     servopousse.write(pos);              // tell servo to go to position in variable 'pos'
     delay(15);                       // waits 15 ms for the servo to reach the position
   }
-  for (pos = 180; pos >= 0; pos -= 1) { // goes from 180 degrees to 0 degrees
+  for (pos = 180; pos >= 90; pos -= 1) { // goes from 180 degrees to 0 degrees
     servopousse.write(pos);              // tell servo to go to position in variable 'pos'
     delay(15);                       // waits 15 ms for the servo to reach the position
+  }
+}
+
+void pliedeplie(){
+  if (servopousse.read() == 0){
+    servopousse.write(180);    
+  }
+  else if (servopousse.read() == 180){
+    servopousse.write(0);    
+  }
+  else {
+    servopousse.write(180);
   }
 }
 
@@ -389,48 +327,6 @@ void avanceDeMm(float distDem, float vitesseDem){
   
   ToutDroitCapitaine(0,0,0);
   
-}
-
-void tourneCont(float vitessedem, String sens){
-  if (sens == "d"){
-    MDROIT.motor.run(BACKWARD);   
-    MGAUCHE.motor.run(FORWARD);
-  } else if (sens == "g"){
-    MDROIT.motor.run(FORWARD);   
-    MGAUCHE.motor.run(BACKWARD);
-  } else {
-    MDROIT.motor.run(RELEASE);   
-    MGAUCHE.motor.run(RELEASE);
-  }
-  MDROIT.datSpeed(vitessedem);
-  MGAUCHE.datSpeed(vitessedem);
-  
-}
-
-void tourneLigneG(float vitessedem){
-  
-  MDROIT.motor.run(FORWARD);   
-  MGAUCHE.motor.run(BACKWARD);
-  MDROIT.datSpeed(vitessedem);
-  MGAUCHE.datSpeed(vitessedem);
-  uint16_t positionLigne = qtr.readLineBlack(sensorValues);
-
-  while(sensorValues[0] < 400){
-    uint16_t positionLigne = qtr.readLineBlack(sensorValues);
-    MDROIT.motor.run(FORWARD);   
-    MGAUCHE.motor.run(BACKWARD);
-  }
-  
-  while(sensorValues[3] < 800){
-    uint16_t positionLigne = qtr.readLineBlack(sensorValues);
-    MDROIT.motor.run(FORWARD);   
-    MGAUCHE.motor.run(BACKWARD);
-  }
-
-  MDROIT.motor.run(FORWARD);   
-  MGAUCHE.motor.run(FORWARD);
-  ToutDroitCapitaine(0,0,0);
-
 }
 
 void tourne(float vitessedem, String sens){
@@ -470,7 +366,51 @@ void leptitgrain(){
     servolver.write(0);
     ballez += 1;
   }  
+
+  delay(500);
+  
 }
+
+void bornemuch(float temp){
+
+  unsigned int lumi = analogRead(A7);
+
+  if (lumi > temp * sensibilite){
+    MDROIT.datSpeed(0.00);
+    MGAUCHE.datSpeed(0.00);
+    
+    digitalWrite(PinLumi, HIGH);
+    delay(500);
+    digitalWrite(PinLumi, LOW);
+    delay(500);
+    digitalWrite(PinLumi, HIGH);
+    delay(500);
+    digitalWrite(PinLumi, LOW);
+    delay(500);
+    digitalWrite(PinLumi, HIGH);
+    delay(500);
+    digitalWrite(PinLumi, LOW);
+
+    borne = true;
+
+    //MDROIT.datSpeed(0.00);
+    //MGAUCHE.datSpeed(0.00);
+    
+  } 
+}
+
+void eolmonte(){
+  servoeol.write(45);
+  delay(4000);
+  servoeol.write(90);
+}
+
+void eoldescend(){
+  servoeol.write(130);
+  delay(3000);
+  servoeol.write(90);
+}
+
 
 void timerSpeed(){
 
@@ -490,6 +430,203 @@ void timerSpeed(){
 void compteurR(){hallTicksR++;}
 void compteurL(){hallTicksL++;}
 
+//____________________________________________________ Fonctions étapes ______________________________________________________
+
+void parcoursAD(){
+  
+  avanceDeMmLigne(280, 1.00); // A REGLER
+
+  avanceDeMmInterLigne(0.75);
+
+  distempR = MDROIT.ttlTicks;
+
+  delay(1000);
+
+  leptitgrain();
+
+  delay(5000);
+  
+  //delay(500);
+
+  avanceDeMm(60 - MDROIT.TickstoMM(MDROIT.ttlTicks - distempR), 0.70); // avance de Mm Ligne à mettre
+  //delay(500);
+  
+  tourne(0.75, "d");
+
+  avanceDeMmInterLigne(0.75);
+
+  distempR = MDROIT.ttlTicks;
+  
+  //delay(500);
+
+  avanceDeMm(60 - MDROIT.TickstoMM(MDROIT.ttlTicks - distempR), 0.70); // avance de Mm Ligne à mettre
+  //delay(500);
+
+  tourne(0.75, "d");
+
+
+  brosse.run(BACKWARD);
+  brosse.setSpeed(255);
+
+  
+  avanceDeMmLigne(250, 0.75);
+
+
+  brosse.run(RELEASE);
+  
+  avanceDeMmInterLigne(0.75);
+
+  distempR = MDROIT.ttlTicks;
+  
+  //delay(500);
+
+  avanceDeMm(60 - MDROIT.TickstoMM(MDROIT.ttlTicks - distempR), 0.70); // avance de Mm Ligne à mettre
+  //delay(500);
+  
+  tourne(0.75, "g");
+
+  brosse.run(RELEASE);
+
+}
+
+void parcoursDE(){
+
+  sensibilite = analogRead(A7);
+  
+  avanceDeMmLigne(500, 1.25);
+
+  avanceDeMmLigne(360, 1.50);
+
+  servopousse.write(90);
+
+  avanceDeMmLigne(500, 1.25);
+  
+  delay(1000);
+
+  leptitgrain();
+
+  delay(3000);
+
+  avanceDeMmLigne(200, 1.25);
+
+  servopousse.write(0);
+  
+  avanceDeMmInterLigne(1.00);
+  
+  distempR = MDROIT.ttlTicks;
+  //delay(500);
+  avanceDeMm(60 - MDROIT.TickstoMM(MDROIT.ttlTicks - distempR), 0.70); // avance de Mm Ligne à mettre
+  //delay(500);
+  
+  tourne(0.75, "g");   // -------------------------------- Fin de la premiere grande ligne droite ---------------------------------------------
+}
+
+void parcoursEF(){
+
+  brosse.run(BACKWARD);
+  brosse.setSpeed(255);
+  
+  avanceDeMmInterLigne(1.00);
+  distempR = MDROIT.ttlTicks;
+  
+  //delay(500);
+
+  avanceDeMm(60 - MDROIT.TickstoMM(MDROIT.ttlTicks - distempR), 0.70); // avance de Mm Ligne à mettre
+  //delay(500);
+  tourne(0.75, "g");
+
+  brosse.run(RELEASE);
+
+}
+
+void parcoursFC(){
+
+  avanceDeMmLigne(460, 1.00);
+
+  delay(1000);
+
+  leptitgrain();
+
+  delay(3000);
+
+  avanceDeMmLigne(100, 1.00);
+
+  servopousse.write(90);
+
+  avanceDeMm(-200, 0.75);
+
+  servopousse.write(180);
+
+  avanceDeMmLigne(100, 1.00);
+  
+  avanceDeMmLigne(840, 1.25);
+  avanceDeMmInterLigne(0.75);
+  distempR = MDROIT.ttlTicks;
+  
+  //delay(500);
+
+  avanceDeMm(60 - MDROIT.TickstoMM(MDROIT.ttlTicks - distempR), 0.70); // avance de Mm Ligne à mettre
+  //delay(500);
+  tourne(0.75, "g");
+  
+}
+
+void parcoursCD(){
+
+  avanceDeMmLigne(200, 1.00);
+  avanceDeMmInterLigne(1.00);
+  distempR = MDROIT.ttlTicks;
+  
+  //delay(500);
+
+  avanceDeMm(60 - MDROIT.TickstoMM(MDROIT.ttlTicks - distempR), 0.70); // avance de Mm Ligne à mettre
+  //delay(500);
+  tourne(0.75, "g");
+  
+}
+
+void parcoursDG(){
+
+  avanceDeMmLigne(500, 1.25);
+
+  avanceDeMmLigne(360, 1.50);
+
+  avanceDeMmLigne(500, 1.25);
+
+  avanceDeMmInterLigne(0.75);
+  
+  //delay(500);
+
+  brosse.run(BACKWARD);
+  brosse.setSpeed(255);
+
+  avanceDeMmLigne(300, 0.75); // avance de Mm Ligne à mettre
+
+  brosse.run(RELEASE);
+  //delay(500);
+  avanceDeMmInterLigne(0.75);
+  
+  distempR = MDROIT.ttlTicks;
+
+  MDROIT.datSpeed(0);
+  MGAUCHE.datSpeed(0);
+
+  delay(500);  
+
+  avanceDeMm(-20-MDROIT.TickstoMM(MDROIT.ttlTicks - distempR), 0.75); // avance de Mm Ligne à mettre
+  //delay(500);
+  tourne(0.75, "g");  
+  
+}
+
+void parcoursGH(){
+
+  avanceDeMm(565, 0.75);
+
+  eoldescend();
+  
+}
+
 //____________________________________________________Debut programme_________________________________________________________
 
 
@@ -504,10 +641,22 @@ void setup() {
   pinMode(Start, INPUT);
   digitalWrite (Start, HIGH);
 
+  pinMode(PinLumi, OUTPUT);
+
   servolver.attach(9);
   servolver.write(45);
+  delay(500);
   servopousse.attach(10);
-  servopousse.write(179);
+  servopousse.write(180);
+
+  servoeol.attach(PinEol);
+  servoeol.write(90);
+
+  // Zone de test ___________________________
+
+  
+  
+  // _______________________________________
 
   Serial.println("Attente d'appui sur Start");
 
@@ -537,116 +686,37 @@ void setup() {
 
 void loop() {
 
+  //tempos = positionLigne;
   
-  tempos = positionLigne;
-  avanceDeMmLigne(300, 1.50);
-  DemiToru(1.20, 3.1416);
-  avanceDeMmInterLigne(1.00);
-
-  distempR = MDROIT.ttlTicks;
-  
-  //delay(500);
-
-  avanceDeMm(70 - MDROIT.TickstoMM(MDROIT.ttlTicks - distempR), 0.70); // avance de Mm Ligne à mettre
-  //delay(500);
-  
-  tourneLigneG(0.75);
+  parcoursAD();
   
   //delay(500);
   
-  avanceDeMmLigne(250, 0.75);  // -------------------------------- Grande ligne droite ------------------------------------------------
-  avanceDeMmLigne(1050, 1.50);
-  
-  //delay(500);
-  avanceDeMmInterLigne(1.00);
-  distempR = MDROIT.ttlTicks;
-  
+  parcoursDE();
+
   //delay(500);
 
-  avanceDeMm(60 - MDROIT.TickstoMM(MDROIT.ttlTicks - distempR), 0.70); // avance de Mm Ligne à mettre
-  //delay(500);
-  tourneLigneG(0.75);   // -------------------------------- Fin de la premiere grande ligne droite ---------------------------------------------
+  parcoursEF();
+
   //delay(500);
 
-  avanceDeMmInterLigne(1.00);
-  distempR = MDROIT.ttlTicks;
+  parcoursFC();
   
   //delay(500);
 
-  avanceDeMm(60 - MDROIT.TickstoMM(MDROIT.ttlTicks - distempR), 0.70); // avance de Mm Ligne à mettre
-  //delay(500);
-  tourneLigneG(0.75);
-  //delay(500);
-                // -----------------------------------------Deuxieme grande ligne droite --------------------------------------------
-
-  avanceDeMmLigne(150, 1.00);
-  avanceDeMmLigne(350, 1.50);
-  avanceDeMmLigne(800, 2.00);
-  avanceDeMmInterLigne(0.75);
-  distempR = MDROIT.ttlTicks;
-  
+  parcoursCD();
+ 
   //delay(500);
 
-  avanceDeMm(60 - MDROIT.TickstoMM(MDROIT.ttlTicks - distempR), 0.70); // avance de Mm Ligne à mettre
-  //delay(500);
-  tourneLigneG(0.75);
-  //delay(500);
-                // ------------------------------------------- Fin de la deuxieme grande ligne droite ----------------------------------
+  parcoursDG();
 
-  avanceDeMmInterLigne(1.00);
-  distempR = MDROIT.ttlTicks;
-  
   //delay(500);
 
-  avanceDeMm(60 - MDROIT.TickstoMM(MDROIT.ttlTicks - distempR), 0.70); // avance de Mm Ligne à mettre
-  //delay(500);
-  tourneLigneG(0.75);
-  //delay(500);
-
-                // ------------------------------------------- Troisième grande ligne droite -------------------------------------------
-
-  avanceDeMmInterLigne(1.50);
-  distempR = MDROIT.ttlTicks;
-  
-  //delay(500);
-
-  avanceDeMmLigne(100, 1.50); // avance de Mm Ligne à mettre
-  //delay(500);
-
-                // -------------------------------------------- Fin de la troisième ligne droite --------------------------------------
-
-  avanceDeMmInterLigne(0.75);
-  distempR = MDROIT.ttlTicks;
-  
-  //delay(500);
-
-  avanceDeMm(60 - MDROIT.TickstoMM(MDROIT.ttlTicks - distempR), 0.70); // avance de Mm Ligne à mettre
-  //delay(500);
-  tourneLigneG(0.75);
-  //delay(500);
-
-                // ------------------
-
-  avanceDeMmLigne(400, 1.00);
+  parcoursGH();
   
   //delay(500);
 
   while(true){
     heartbeat();    
   }
-
-  /*
-  ElVirage(1.00, "d");
-  
-  servopousse.write(170);
-  
-  avanceDeMmLigne(1820, 1.50); 
-
-  ElVirage(1.00, "d");
-  
-  avanceDeMmInterLigne(1.00);
-  
-  delay(20000);
-
-  */
 }

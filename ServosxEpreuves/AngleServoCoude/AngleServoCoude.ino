@@ -19,8 +19,8 @@ void setup() {
 }
 
 void loop() {
-  myservo.write(72);
-  delay(1000);
-  myservo.write(17l);
-  delay(1000);
+  myservo.write(71);
+  delay(2000);
+  myservo.write(172);
+  delay(2000);
 }
