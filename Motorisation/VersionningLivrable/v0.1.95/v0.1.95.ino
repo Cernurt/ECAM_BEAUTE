@@ -279,6 +279,6 @@ void loop() {
   MGAUCHE.motor.run(FORWARD); 
   avanceDeMm(2000, 3.00);
   
-  delay(50000);
+  delay(1000);
 
 }

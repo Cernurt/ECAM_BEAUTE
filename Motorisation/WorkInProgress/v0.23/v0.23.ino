@@ -70,8 +70,8 @@ class ClasseMoteur{
       
       _speedDelta = cibleVitesse - speedM;
       _somme_erreur += _speedDelta;
-      _delta_erreur = _speedDelta - _erreur_precedente;
-      _erreur_precedente = _speedDelta;
+      //_delta_erreur = _speedDelta - _erreur_precedente;
+      //_erreur_precedente = _speedDelta;
       
       _MotorPWM = _kp * _speedDelta + _ki * _somme_erreur + _kd * _delta_erreur;
       
@@ -101,7 +101,7 @@ class ClasseMoteur{
     void resetParamAsserv(){
       _somme_erreur=0;
       _delta_erreur=0;
-      _erreur_precedente=0;
+      //_erreur_precedente=0;
     }
 
 };
@@ -109,7 +109,7 @@ class ClasseMoteur{
 //____________________________________________________Fin de LaGrandeClasse___________________________________________
 
 //___________________________________________________Création objets/variables_________________________________________________________
-bool debug=true;
+bool debug=false;
 
 double tickperround = 600; // Valeur à changer en fonction du capteur à effet hall
 volatile int hallTicksR;
@@ -129,19 +129,20 @@ double distempR;
 double distempL;
 
 //Variables PID suivi de ligne
+int ballez = 0;
 float Varia;
 int sommeErreur = 0;
 int lastError;
-int position;
+int positionLigne;
 int error;
 float KP = 0.000214;
 float KI = 0;
 float KD = 0.000400;
 unsigned int sensors[8];
 
-Servo servolver;   // Servo du 360
-int delayvolver = 375;
+unsigned int tempos;
 
+Servo servolver;   // Servo du 360
 Servo servopousse;
 
 QTRSensors qtr;
@@ -159,10 +160,52 @@ ClasseMoteur MGAUCHE = ClasseMoteur(600,rRoues, motorL, 200, 30, 0); // Coeffici
 //____________________________________________________Def Fonctions___________________________________________________
 
 
+void ElVirage(float ciblasse, String sens){ //WORK IN PROGRESS
+  if (sens == "g"){
+    MDROIT.datSpeed(ciblasse * 1.50);
+    MGAUCHE.datSpeed(ciblasse * 0.50);
+
+    tempos = positionLigne;
+    while (tempos <= 6500){ // Le robot quitte la ligne
+      uint16_t positionLigne = qtr.readLineBlack(sensorValues);
+      tempos = positionLigne;
+      MDROIT.motor.run(FORWARD);   
+      MGAUCHE.motor.run(FORWARD);
+    }
+    while (tempos > 4000){
+      uint16_t positionLigne = qtr.readLineBlack(sensorValues);
+      tempos = positionLigne;
+      MDROIT.motor.run(FORWARD);   
+      MGAUCHE.motor.run(FORWARD);
+    }
+    
+  } else if (sens == "d") {
+    MDROIT.motor.run(FORWARD);    
+    MGAUCHE.motor.run(FORWARD);
+    MDROIT.datSpeed(ciblasse * 0.50);
+    MGAUCHE.datSpeed(ciblasse * 1.50);
+    
+    tempos = positionLigne;
+    while (tempos >= 1500){ // Le robot quitte la ligne
+      uint16_t positionLigne = qtr.readLineBlack(sensorValues);
+      tempos = positionLigne;
+      MDROIT.motor.run(FORWARD);   
+      MGAUCHE.motor.run(FORWARD);
+    }
+    while (tempos < 3000){
+      uint16_t positionLigne = qtr.readLineBlack(sensorValues);
+      tempos = positionLigne;
+      MDROIT.motor.run(FORWARD);   
+      MGAUCHE.motor.run(FORWARD);
+    }
+    
+  }
+}
+
 void SuiviDligne(float ciblasse){
   
-  position = qtr.readLineBlack(sensorValues);
-  error = position - 3500;
+  positionLigne = qtr.readLineBlack(sensorValues);
+  error = positionLigne - 3500;
   sommeErreur += error;
   
     
@@ -171,30 +214,20 @@ void SuiviDligne(float ciblasse){
  
 
   MDROIT.datSpeed(ciblasse - Varia);
-  MGAUCHE.datSpeed(ciblasse + Varia);
-  delay(1); //A tester sans 
+  MGAUCHE.datSpeed(ciblasse + Varia); 
 }
 
-void calibmax(){
+void calibmax(){                                                                                       //Asservissement
   for (uint16_t i = 0; i < 100; i++)
   {
-    if (i < 10){
-      tourneCont(0.50, "d");
-    } 
-    else if (i < 30){
-      tourneCont(0.50, "g");
+    if (i < 25){
+      tourneCont(0.40, "g");
     }
-    else if (i < 50){
-      tourneCont(0.50, "d");
-    }
-    else if (i < 70){
-      tourneCont(0.50, "g");
-    }
-    else if (i < 90){
-      tourneCont(0.50, "d");
+    else if (i < 71){
+      tourneCont(0.40, "d");
     }
     else if (i < 100){
-      tourneCont(0.50, "g");
+      tourneCont(0.40, "g");
     }
     
     qtr.calibrate();
@@ -224,6 +257,41 @@ void ToutDroitCapitaine(float ciblasse, float ticksR, float ticksL){
 
 void capteurLumiere(){
   int lumi = analogRead(A7);
+}
+
+void avanceDeMmLigne(float distDem, float vitesseDem){
+  
+  distempR = MDROIT.ttlTicks;
+  distempL = MGAUCHE.ttlTicks;
+
+  MDROIT.motor.run(FORWARD);    
+  MGAUCHE.motor.run(FORWARD);
+
+  while(((MDROIT.ttlTicks + MGAUCHE.ttlTicks)/2 - (distempR + distempL)/2) < MDROIT.MMtoTicks(distDem)){
+    SuiviDligne(vitesseDem);
+  }
+
+  ToutDroitCapitaine(0,0,0);
+  
+}
+
+void avanceDeMmInterLigne(float vitesseDem){
+  
+  distempR = MDROIT.ttlTicks;
+  distempL = MGAUCHE.ttlTicks;
+
+  MDROIT.motor.run(FORWARD);     
+  MGAUCHE.motor.run(FORWARD);
+
+  while(sensorValues[0] + sensorValues[1] + sensorValues[2] + sensorValues[3] + sensorValues[4] + sensorValues[5] + sensorValues[6] + sensorValues[7] < 4500){
+    SuiviDligne(vitesseDem);
+  }
+  ToutDroitCapitaine(0,0,0);
+}
+
+void virageInterLigne(){
+
+
   
 }
 
@@ -284,12 +352,17 @@ void tourne(float vitessedem, String sens){
 }
 
 void leptitgrain(){
-
-  servolver.write(140); 
-  delay(delayvolver);   
-  servolver.write(90);        
-  delayvolver -= 5;
   
+  if (ballez == 2){
+    servolver.write(180);
+    ballez += 1;
+  } else if (ballez == 1){
+    servolver.write(90);
+    ballez += 1;
+  } else if (ballez == 0){
+    servolver.write(0);
+    ballez += 1;
+  }  
 }
 
 void timerSpeed(){
@@ -325,6 +398,7 @@ void setup() {
   digitalWrite (Start, HIGH);
 
   servolver.attach(9);
+  servolver.write(45);
   servopousse.attach(10);
   servopousse.write(179);
 
@@ -337,6 +411,7 @@ void setup() {
   }
 
   
+  
   pinMode(ENCODEURR, INPUT_PULLUP);
   pinMode(ENCODEURL, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(19), compteurR, CHANGE);
@@ -345,21 +420,35 @@ void setup() {
   Timer1.initialize(20000); // On défini le timeur : 50000 microseconds ( 0.05 sec - or 20Hz )
   Timer1.attachInterrupt( timerSpeed ); 
 
- 
+  calibmax();
 
   MDROIT.motor.run(FORWARD);     // ^
   MGAUCHE.motor.run(FORWARD);    // | Exemple de commande des moteurs
-  avanceDeMm(0, 1);              // v   (distanceEnMm, vitesse en tr/sec)
+  avanceDeMmLigne(0, 1);         // v   (distanceEnMm, vitesse en tr/sec)
 }
 
 
 void loop() {
 
-  calibmax();
+  leptitgrain();
 
-  while(1){
-    SuiviDligne(1.20);
-  }
+  delay(5000);
+  /*
+  tempos = positionLigne;
+
+  avanceDeMmLigne(280, 1.50);
   
+  ElVirage(1.00, "d");
+  
+  servopousse.write(170);
+  
+  avanceDeMmLigne(1820, 1.50); 
 
+  ElVirage(1.00, "d");
+  
+  avanceDeMmInterLigne(1.00);
+  
+  delay(20000);
+
+  */
 }

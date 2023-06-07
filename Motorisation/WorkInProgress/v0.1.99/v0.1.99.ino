@@ -142,17 +142,6 @@ ClasseMoteur MGAUCHE = ClasseMoteur(600,rRoues, motorL, 200, 30, 0); // Coeffici
 //____________________________________________________Def Fonctions___________________________________________________
 
 
-void SuiviDligne(float ciblasse){
-
-
-
-  MDROIT.datSpeed(cibleR);
-  MGAUCHE.datSpeed(cibleL);
-  delay(1); //A tester sans 
-}
-
-
-
 void ToutDroitCapitaine(float ciblasse, float ticksR, float ticksL){
   
   deltaS = ticksR - ticksL;
@@ -221,9 +210,8 @@ void leptitgrain(){
 
 void timerSpeed(){
 
-  MDROIT.routine(hallTicksR*nerfG);
+  MDROIT.routine(hallTicksR);
   hallTicksR = 0;
-  MGAUCHE.routine(hallTicksL); //Coeffshlag
   hallTicksL = 0;
 
   if (debug){
@@ -278,6 +266,7 @@ void setup() {
 
 void loop() {
 
-  
+  avanceDeMm(200, 1.00);
+  tourne(1.00, "d");
 
 }
