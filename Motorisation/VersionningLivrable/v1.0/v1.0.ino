@@ -360,7 +360,7 @@ void tourne(float vitessedem, String sens){
   } else {
     MDROIT.motor.run(RELEASE);   
     MGAUCHE.motor.run(RELEASE);
-    Serial.println("renseigner le sens 'g' ou 'd' en deuxieme argument");
+    //Serial.println("renseigner le sens 'g' ou 'd' en deuxieme argument");
   }
 
   while(((MDROIT.ttlTicks + MGAUCHE.ttlTicks)/2 - (distempR + distempL)/2) < MDROIT.MMtoTicks(197)){
@@ -461,7 +461,7 @@ void parcoursAD(){
 
   leptitgrain();
 
-  delay(5000);
+  delay(3000);
   
   //delay(500);
 
@@ -487,11 +487,10 @@ void parcoursAD(){
 
   
   avanceDeMmLigne(250, 0.75);
-
-
-  brosse.run(RELEASE);
   
   avanceDeMmInterLigne(0.75);
+
+  brosse.run(RELEASE);
 
   distempR = MDROIT.ttlTicks;
   
@@ -502,15 +501,16 @@ void parcoursAD(){
   
   tourne(0.75, "g");
 
-  brosse.run(RELEASE);
-
 }
 
 void parcoursDE(){
 
-  sensibilite = analogRead(A7);
+  brosse.run(BACKWARD);
+  brosse.setSpeed(255);
   
   avanceDeMmLigne(500, 1.25);
+
+  brosse.setSpeed(RELEASE);
 
   avanceDeMmLigne(360, 1.50);
 
@@ -526,13 +526,11 @@ void parcoursDE(){
 
   delay(3000);
 
-  avanceDeMmLigne(100, 0.75);
+  servopousse.write(172);
 
   avanceDeMmLigne(100, 1.25);
 
-  servopousse.write(0);
-  
-  avanceDeMmInterLigne(1.00);
+  avanceDeMmInterLigne(0.75);
   
   distempR = MDROIT.ttlTicks;
   //delay(500);
@@ -569,26 +567,6 @@ void parcoursFC(){
   leptitgrain();
 
   delay(3000);
-
-  avanceDeMmLigne(100, 1.00);
-
-  MDROIT.datSpeed(0);
-  MGAUCHE.datSpeed(0);
-
-  servopousse.write(90);
-
-  delay(1000);
-
-  avanceDeMm(-200, 0.75);
-
-  MDROIT.datSpeed(0);
-  MGAUCHE.datSpeed(0);
-
-  servopousse.write(180);
-
-  delay(1000);
-
-  avanceDeMmLigne(100, 1.00);
   
   avanceDeMmLigne(840, 1.25);
   avanceDeMmInterLigne(0.75);
@@ -652,6 +630,7 @@ void parcoursDG(){
 
 void parcoursGH(){
 
+
   avanceDeMm(610, 0.75);
 
   eoldescend();
@@ -689,7 +668,7 @@ void setup() {
   
   // _______________________________________
 
-  Serial.println("Attente d'appui sur Start");
+  //Serial.println("Attente d'appui sur Start");
 
   if (digitalRead(Start)==HIGH){         //
     while(digitalRead(Start)==HIGH);     //    Lancement si l'interrupteur de start change d'état

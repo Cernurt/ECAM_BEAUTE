@@ -360,7 +360,7 @@ void tourne(float vitessedem, String sens){
   } else {
     MDROIT.motor.run(RELEASE);   
     MGAUCHE.motor.run(RELEASE);
-    Serial.println("renseigner le sens 'g' ou 'd' en deuxieme argument");
+    //Serial.println("renseigner le sens 'g' ou 'd' en deuxieme argument");
   }
 
   while(((MDROIT.ttlTicks + MGAUCHE.ttlTicks)/2 - (distempR + distempL)/2) < MDROIT.MMtoTicks(197)){
@@ -461,7 +461,7 @@ void parcoursAD(){
 
   leptitgrain();
 
-  delay(5000);
+  delay(3000);
   
   //delay(500);
 
@@ -487,11 +487,10 @@ void parcoursAD(){
 
   
   avanceDeMmLigne(250, 0.75);
-
-
-  brosse.run(RELEASE);
   
   avanceDeMmInterLigne(0.75);
+
+  brosse.run(RELEASE);
 
   distempR = MDROIT.ttlTicks;
   
@@ -502,15 +501,16 @@ void parcoursAD(){
   
   tourne(0.75, "g");
 
-  brosse.run(RELEASE);
-
 }
 
 void parcoursDE(){
 
-  sensibilite = analogRead(A7);
+  brosse.run(BACKWARD);
+  brosse.setSpeed(255);
   
   avanceDeMmLigne(500, 1.25);
+
+  brosse.setSpeed(RELEASE);
 
   avanceDeMmLigne(360, 1.50);
 
@@ -689,7 +689,7 @@ void setup() {
   
   // _______________________________________
 
-  Serial.println("Attente d'appui sur Start");
+  //Serial.println("Attente d'appui sur Start");
 
   if (digitalRead(Start)==HIGH){         //
     while(digitalRead(Start)==HIGH);     //    Lancement si l'interrupteur de start change d'état
